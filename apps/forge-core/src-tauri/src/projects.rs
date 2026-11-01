@@ -7,9 +7,10 @@ use std::time::UNIX_EPOCH;
 
 pub const EXTENSION: &str = "forgecore";
 
-/// `Documents\Forge\Projects`, shared with the other Forge apps.
+/// Shared with the other Forge apps; chosen in Forge Hub's Settings
+/// (or `FORGE_PROJECTS_DIR`), else `Documents\Forge\Projects`.
 pub fn projects_dir() -> PathBuf {
-    dirs::document_dir().unwrap_or_else(|| dirs::home_dir().unwrap_or_else(std::env::temp_dir)).join("Forge").join("Projects")
+    forge_paths::projects_dir()
 }
 
 fn recent_file() -> PathBuf {

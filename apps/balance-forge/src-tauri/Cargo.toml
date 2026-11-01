@@ -24,6 +24,7 @@ rand = { version = "0.8", features = ["small_rng"] }
 dirs = "5"
 forge-formula = { path = "../../../crates/forge-formula" }
 forge-launch-guard = { path = "../../../crates/launch-guard" }
+forge-paths = { path = "../../../crates/forge-paths" }
 
 [dev-dependencies]
 tempfile = "3"

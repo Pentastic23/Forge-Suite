@@ -36,3 +36,4 @@
 .notes { white-space: pre-wrap; color: var(--forge-text-muted); font-size: 13px; margin: 8px 0 0; max-height: 160px; overflow: auto; }
 .problems li { margin-bottom: 8px; color: var(--forge-text-muted); }
 .problems code { color: var(--forge-text); }
+.settings-row .hint.warn-text { color: var(--forge-warn); }

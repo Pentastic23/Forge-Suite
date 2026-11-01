@@ -27,6 +27,7 @@ blake3 = "1"
 imagesize = "0.13"
 image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "bmp", "tga", "webp"] }
 forge-launch-guard = { path = "../../../crates/launch-guard" }
+forge-paths = { path = "../../../crates/forge-paths" }
 
 [dev-dependencies]
 tempfile = "3"
