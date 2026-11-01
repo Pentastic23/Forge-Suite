@@ -1,0 +1,29 @@
+[package]
+name = "balance-forge"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+description = "Balance Forge: balancing, analysis and simulation of game systems"
+
+[lib]
+name = "balance_forge_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rusqlite = { version = "0.32", features = ["bundled"] }
+uuid = { version = "1", features = ["v4"] }
+zip = { version = "2", default-features = false, features = ["deflate"] }
+rand = { version = "0.8", features = ["small_rng"] }
+dirs = "5"
+forge-formula = { path = "../../../crates/forge-formula" }
+forge-launch-guard = { path = "../../../crates/launch-guard" }
+
+[dev-dependencies]
+tempfile = "3"

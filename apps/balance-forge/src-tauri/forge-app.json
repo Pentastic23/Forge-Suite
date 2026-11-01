@@ -1,0 +1,14 @@
+{
+  "id": "balance-forge",
+  "name": "Balance Forge",
+  "version": "0.1.0",
+  "executable": "Balance Forge.exe",
+  "description": "Balance your game: stat sheets with formulas, cost-vs-power charts, combat and economy simulations, and patch notes.",
+  "category": "design",
+  "icon": "icon.png",
+  "tags": ["balance", "simulation", "stats"],
+  "opens": [".balanceforge", ".forgecodex"],
+  "updateSource": "https://github.com/Pentastic23/forge-suite/releases",
+  "channel": "stable",
+  "accent": "#19DAF5"
+}
