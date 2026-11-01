@@ -1,0 +1,35 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Balance Forge",
+  "version": "0.1.0",
+  "identifier": "com.forgesuite.balance",
+  "build": {
+    "beforeDevCommand": "pnpm vite",
+    "devUrl": "http://localhost:1422",
+    "beforeBuildCommand": "pnpm vite build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Balance Forge",
+        "width": 1360,
+        "height": 840,
+        "minWidth": 1000,
+        "minHeight": 640,
+        "backgroundColor": "#1c2236"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; connect-src 'self' ipc: http://ipc.localhost"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.ico"],
+    "fileAssociations": [
+      { "ext": ["balanceforge"], "name": "Balance Forge project", "description": "Balance Forge project" }
+    ]
+  }
+}

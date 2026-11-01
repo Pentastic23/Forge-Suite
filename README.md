@@ -6,7 +6,7 @@ Desktop tools for indie game developers, opened from one launcher.
 | --- | --- | --- |
 | **Forge Hub** | Launcher, installer and updater. The only way to open the other apps. | First version (this repo) |
 | **Forge Core** | Game Development Codex: lore, quests, zones, mobs, items, skills. | First version |
-| **Balance Forge** | Balancing, analysis and simulation of game systems. | Planned |
+| **Balance Forge** | Balancing, analysis and simulation of game systems. | First version |
 | **Asset Forge** | Asset library, production tracking, checks and engine export. | Planned |
 | **Pixel Forge** | Doodle-to-pixel-art, rigging and animation. | Planned (remake) |
 
@@ -24,9 +24,11 @@ The full plan is in the Forge Suite Blueprint doc.
 ```
 apps/forge-hub/        Forge Hub (Tauri 2 + React + TypeScript)
 apps/forge-core/       Forge Core, the Game Development Codex
+apps/balance-forge/    Balance Forge, stat sheets, charts and simulations
 packages/ui/           Shared React components and theme
 packages/formats/      Shared file formats (app manifest, exchange files)
 crates/launch-guard/   Single-use launch keys (used by Hub and every app)
+crates/forge-formula/  The formula language used in Balance Forge sheets
 examples/demo-app/     A stand-in app for testing launches
 brand/                 Logos
 ```
@@ -98,6 +100,29 @@ Each project is one `.forgecore` file (SQLite) in `Documents\Forge\Projects`. It
 entries, tags, links between entries, full version history and a search index.
 Exports: `.forgecodex` (for the other Forge apps), JSON (full backup, can be imported),
 CSV and Markdown.
+
+## Balance Forge
+
+```
+pnpm balance:dev     # needs FORGE_DEV=1 outside Forge Hub, as above
+pnpm balance:build
+```
+
+Each project is one `.balanceforge` file (SQLite) in `Documents\Forge\Projects`. It holds:
+
+- **Stat sheets.** Rows of units, weapons or cards with number, text and formula columns.
+  Formulas use other columns by key (`damage * attackSpeed`) or by name (`[Attack speed]`),
+  plus `min`, `max`, `clamp`, `round`, `if` and more.
+- **Analysis.** Cost against power with a trend line that one outlier can't drag, flagging rows
+  that look too strong or too weak; power curves by level or tier, flagging spikes and flat spots.
+- **Simulations.** One-vs-one duels and everyone-vs-everyone round-robins (up to 100,000 fights
+  per pair), and an economy sim of many players earning and spending one currency over time.
+  Every run shows its seed, so it can be repeated exactly.
+- **Patches.** Snapshots of a sheet, a before/after comparison, and patch notes in Markdown.
+
+Import: `.forgecodex` from Forge Core (one module per sheet; importing again updates those rows
+and keeps your own columns). Export: `.forgebalance` (for the other Forge apps) and CSV.
+Balance Forge never invents stats, items or mechanics; it only works with what you enter or import.
 
 ## Releases and updates
 
