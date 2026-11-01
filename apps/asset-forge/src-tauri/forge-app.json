@@ -1,0 +1,14 @@
+{
+  "id": "asset-forge",
+  "name": "Asset Forge",
+  "version": "0.1.0",
+  "executable": "Asset Forge.exe",
+  "description": "Your asset library: organise, check and export every sprite, sound and model in your game, and track what's still missing.",
+  "category": "production",
+  "icon": "icon.png",
+  "tags": ["assets", "library", "pipeline", "export"],
+  "opens": [".assetforge", ".forgecodex"],
+  "updateSource": "https://github.com/Pentastic23/forge-suite/releases",
+  "channel": "stable",
+  "accent": "#C9772E"
+}

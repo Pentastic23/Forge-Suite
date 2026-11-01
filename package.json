@@ -11,6 +11,8 @@
     "core:build": "pnpm --filter forge-core tauri build",
     "balance:dev": "pnpm --filter balance-forge tauri dev",
     "balance:build": "pnpm --filter balance-forge tauri build",
+    "asset:dev": "pnpm --filter asset-forge tauri dev",
+    "asset:build": "pnpm --filter asset-forge tauri build",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test && cargo test --workspace"
   },
