@@ -23,6 +23,14 @@ export interface Settings {
   logRetentionDays: number;
 }
 
+export interface ProjectsFolder {
+  path: string;
+  source: "env" | "setting" | "default";
+  defaultPath: string;
+  inOnedrive: boolean;
+  leftInDefault: number;
+}
+
 export type Level = "info" | "warn" | "error";
 
 export interface LogEntry {
@@ -41,6 +49,8 @@ export const api = {
   readLogs: (limit?: number) => invoke<LogEntry[]>("read_logs", { limit }),
   hubPaths: () => invoke<Record<"data" | "defaultApps" | "launchKeys", string>>("hub_paths"),
   openFolder: (path: string) => invoke<void>("open_folder", { path }),
+  projectsFolder: () => invoke<ProjectsFolder>("projects_folder"),
+  setProjectsFolder: (path: string | null) => invoke<ProjectsFolder>("set_projects_folder", { path }),
 };
 
 export function iconUrl(app: InstalledApp): string | undefined {

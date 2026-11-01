@@ -29,6 +29,7 @@ apps/asset-forge/      Asset Forge, the asset library, checks and engine export
 packages/ui/           Shared React components and theme
 packages/formats/      Shared file formats (app manifest, exchange files)
 crates/launch-guard/   Single-use launch keys (used by Hub and every app)
+crates/forge-paths/    Shared folders, such as where project files live
 crates/forge-formula/  The formula language used in Balance Forge sheets
 examples/demo-app/     A stand-in app for testing launches
 brand/                 Logos
@@ -97,7 +98,7 @@ To run a built Forge Core through Forge Hub, install it, copy
 `apps/forge-core/src-tauri/forge-app.json` next to `Forge Core.exe` (and an `icon.png`),
 and make sure that folder is inside one of Forge Hub's app folders.
 
-Each project is one `.forgecore` file (SQLite) in `Documents\Forge\Projects`. It holds the
+Each project is one `.forgecore` file (SQLite) in the projects folder. It holds the
 entries, tags, links between entries, full version history and a search index.
 Exports: `.forgecodex` (for the other Forge apps), JSON (full backup, can be imported),
 CSV and Markdown.
@@ -109,7 +110,7 @@ pnpm balance:dev     # needs FORGE_DEV=1 outside Forge Hub, as above
 pnpm balance:build
 ```
 
-Each project is one `.balanceforge` file (SQLite) in `Documents\Forge\Projects`. It holds:
+Each project is one `.balanceforge` file (SQLite) in the projects folder. It holds:
 
 - **Stat sheets.** Rows of units, weapons or cards with number, text and formula columns.
   Formulas use other columns by key (`damage * attackSpeed`) or by name (`[Attack speed]`),
@@ -132,7 +133,7 @@ pnpm asset:dev       # needs FORGE_DEV=1 outside Forge Hub, as above
 pnpm asset:build
 ```
 
-Each project is one `.assetforge` file (SQLite) in `Documents\Forge\Projects`. Asset Forge reads
+Each project is one `.assetforge` file (SQLite) in the projects folder. Asset Forge reads
 your art, sound and model folders where they are; nothing is copied or uploaded. It holds:
 
 - **Library.** Thumbnails for every file, with filters by category, status, type, folder and tag,
@@ -152,6 +153,14 @@ your art, sound and model folders where they are; nothing is copied or uploaded.
 
 Export for the other Forge apps: `.forgeasset`. Asset Forge never creates or edits art; it only
 organises, checks and copies the files you give it.
+
+## Projects folder
+
+Every app keeps its project files in one shared folder. Choose it in Forge Hub under
+Settings, Projects folder; it is saved in `%LOCALAPPDATA%\ForgeSuite\suite.json`, which each
+app reads on its own. The `FORGE_PROJECTS_DIR` environment variable overrides it. Until one
+is chosen, the default is `Documents\Forge\Projects`. Avoid folders synced by OneDrive, which
+can lock a project while it is open.
 
 ## Releases and updates
 

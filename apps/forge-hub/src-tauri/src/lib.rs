@@ -71,6 +71,56 @@ fn hub_paths() -> HashMap<&'static str, PathBuf> {
     ])
 }
 
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ProjectsFolder {
+    path: PathBuf,
+    /// "env" (FORGE_PROJECTS_DIR), "setting" or "default".
+    source: &'static str,
+    default_path: PathBuf,
+    in_onedrive: bool,
+    /// Project files in the default folder, when another folder is in use.
+    left_in_default: usize,
+}
+
+fn count_projects(dir: &std::path::Path) -> usize {
+    const EXTS: [&str; 4] = ["forgecore", "balanceforge", "assetforge", "pixelforge"];
+    std::fs::read_dir(dir)
+        .map(|it| it.flatten().filter(|e| e.path().extension().and_then(|x| x.to_str()).is_some_and(|x| EXTS.contains(&x.to_lowercase().as_str()))).count())
+        .unwrap_or(0)
+}
+
+/// The folder every Forge app keeps project files in.
+#[tauri::command]
+fn projects_folder() -> ProjectsFolder {
+    let (path, source) = forge_paths::projects_dir_with_source();
+    let default_path = forge_paths::default_projects_dir();
+    let left_in_default = if path != default_path { count_projects(&default_path) } else { 0 };
+    ProjectsFolder {
+        in_onedrive: forge_paths::in_onedrive(&path),
+        path,
+        source: match source {
+            forge_paths::Source::Env => "env",
+            forge_paths::Source::Setting => "setting",
+            forge_paths::Source::Default => "default",
+        },
+        default_path,
+        left_in_default,
+    }
+}
+
+/// Changes the projects folder for every app; `None` goes back to the default.
+#[tauri::command]
+fn set_projects_folder(path: Option<PathBuf>) -> Result<ProjectsFolder, String> {
+    forge_paths::set_projects_dir(path.as_deref()).map_err(|e| e.to_string())?;
+    let msg = match &path {
+        Some(p) => format!("Projects folder set to {}", p.display()),
+        None => "Projects folder set back to the default".to_string(),
+    };
+    activity::log(&hub_dir(), Level::Info, "hub", msg);
+    Ok(projects_folder())
+}
+
 /// Opens a folder in the system file manager.
 #[tauri::command]
 fn open_folder(path: PathBuf) -> Result<(), String> {
@@ -96,6 +146,7 @@ pub fn run() {
     }
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             get_settings,
             save_settings,
@@ -104,7 +155,9 @@ pub fn run() {
             launch_app,
             read_logs,
             hub_paths,
-            open_folder
+            open_folder,
+            projects_folder,
+            set_projects_folder
         ])
         .run(tauri::generate_context!())
         .expect("error while running Forge Hub");

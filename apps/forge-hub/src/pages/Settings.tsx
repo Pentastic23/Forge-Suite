@@ -1,6 +1,50 @@
 import { useEffect, useState } from "react";
+import { open as pickFolder } from "@tauri-apps/plugin-dialog";
 import { Button, Card, PageHeader } from "@forge/ui";
-import { api, errorText, type Settings as SettingsT } from "../api";
+import { api, errorText, type ProjectsFolder, type Settings as SettingsT } from "../api";
+
+/** Where every Forge app keeps its project files. */
+function ProjectsFolderCard(props: { notify: (msg: string, bad?: boolean) => void }) {
+  const [pf, setPf] = useState<ProjectsFolder>();
+  useEffect(() => { api.projectsFolder().then(setPf).catch((e) => props.notify(errorText(e), true)); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const set = async (path: string | null) => {
+    try {
+      const next = await api.setProjectsFolder(path);
+      setPf(next);
+      props.notify(path ? "Projects folder changed. Apps use it the next time they open." : "Projects folder set back to the default.");
+    } catch (e) { props.notify(errorText(e), true); }
+  };
+  const choose = async () => {
+    const path = await pickFolder({ directory: true, multiple: false, title: "Choose where Forge apps keep projects", defaultPath: pf?.path });
+    if (typeof path === "string") void set(path);
+  };
+  if (!pf) return null;
+  return (
+    <Card>
+      <div className="settings-row" style={{ display: "block", borderBottom: 0 }}>
+        <div>Projects folder</div>
+        <div className="hint">Forge Core, Balance Forge and Asset Forge create and list their project files here. Pick a folder that isn't synced by OneDrive, since syncing can lock a project while it's open.</div>
+        <div className="folder-list">
+          <div className="row">
+            <code title={pf.path}>{pf.path}</code>
+            <Button onClick={() => void api.openFolder(pf.path).catch((e) => props.notify(errorText(e), true))}>Open</Button>
+            <Button disabled={pf.source === "env"} onClick={() => void choose()}>Change…</Button>
+            {pf.source === "setting" && <Button variant="ghost" onClick={() => void set(null)}>Use default</Button>}
+          </div>
+        </div>
+        {pf.source === "env" && <div className="hint" style={{ marginTop: 8 }}>Set by the FORGE_PROJECTS_DIR environment variable, which overrides this setting.</div>}
+        {pf.source === "default" && <div className="hint" style={{ marginTop: 8 }}>This is the default, inside your Documents folder.</div>}
+        {pf.inOnedrive && <div className="hint warn-text" style={{ marginTop: 8 }}><span aria-hidden="true">! </span>This folder is inside OneDrive.</div>}
+        {pf.leftInDefault > 0 && (
+          <div className="hint" style={{ marginTop: 8 }}>
+            {pf.leftInDefault} project {pf.leftInDefault === 1 ? "file is" : "files are"} still in the old folder ({pf.defaultPath}). Move {pf.leftInDefault === 1 ? "it" : "them"} here with the apps closed to keep working on {pf.leftInDefault === 1 ? "it" : "them"}.
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
 
 export function Settings(props: { onSaved: () => void; notify: (msg: string, bad?: boolean) => void }) {
   const [s, setS] = useState<SettingsT>();
@@ -67,6 +111,9 @@ export function Settings(props: { onSaved: () => void; notify: (msg: string, bad
           </select>
         </label>
       </Card>
+
+      <div className="hub-section">Projects</div>
+      <ProjectsFolderCard notify={props.notify} />
 
       <div className="hub-section">Forge Hub data</div>
       <Card>
