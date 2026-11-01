@@ -1,0 +1,23 @@
+[package]
+name = "forge-hub"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+description = "Forge Hub: the launcher for the Forge Suite"
+
+[lib]
+name = "forge_hub_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["protocol-asset"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+dirs = "5"
+forge-launch-guard = { path = "../../../crates/launch-guard" }
+
+[dev-dependencies]
+tempfile = "3"

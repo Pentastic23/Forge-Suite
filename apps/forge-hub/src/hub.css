@@ -1,0 +1,38 @@
+.hub-tiles { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); margin-bottom: 28px; }
+.hub-tile .value { font-size: 28px; font-weight: 700; }
+.hub-tile .label { color: var(--forge-text-muted); font-size: 13px; }
+.hub-section { margin: 28px 0 12px; font-size: 15px; font-weight: 600; }
+.app-card { display: flex; flex-direction: column; gap: 12px; min-height: 210px; }
+.app-card-head { display: flex; gap: 12px; align-items: center; }
+.app-icon {
+  width: 52px; height: 52px; border-radius: 10px; flex: none; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--forge-accent) 18%, var(--forge-surface-2)); font-weight: 700; font-size: 18px;
+  image-rendering: pixelated; object-fit: cover;
+}
+.app-card h3 { margin: 0; font-size: 16px; }
+.app-card .meta { color: var(--forge-text-muted); font-size: 12px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.app-card p { margin: 0; color: var(--forge-text-muted); line-height: 1.45; flex: 1; }
+.app-card .actions { display: flex; gap: 8px; align-items: center; }
+.app-card .actions .grow { flex: 1; }
+.icon-btn { padding: 8px 10px; }
+.star[aria-pressed="true"] { color: var(--forge-gold); }
+.toolbar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.toolbar .forge-input { flex: 1; min-width: 200px; }
+.quick { display: flex; gap: 12px; flex-wrap: wrap; }
+.quick .forge-btn { padding: 10px 16px; }
+.log-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.log-table th { text-align: left; color: var(--forge-text-muted); font-weight: 500; padding: 8px 10px; border-bottom: 1px solid var(--forge-border); position: sticky; top: 0; background: var(--forge-bg); }
+.log-table td { padding: 8px 10px; border-bottom: 1px solid color-mix(in srgb, var(--forge-border) 50%, transparent); vertical-align: top; }
+.log-table td.time { white-space: nowrap; color: var(--forge-text-muted); font-variant-numeric: tabular-nums; }
+.activity { list-style: none; margin: 0; padding: 0; }
+.activity li { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid color-mix(in srgb, var(--forge-border) 50%, transparent); }
+.activity .when { color: var(--forge-text-muted); min-width: 90px; font-size: 12px; padding-top: 2px; }
+.settings-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid color-mix(in srgb, var(--forge-border) 50%, transparent); }
+.settings-row .hint { color: var(--forge-text-muted); font-size: 12px; margin-top: 2px; }
+.folder-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.folder-list .row { display: flex; gap: 8px; align-items: center; }
+.folder-list code { flex: 1; background: var(--forge-bg); padding: 8px 10px; border-radius: var(--forge-radius-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.toast { position: fixed; bottom: 20px; right: 20px; max-width: 420px; z-index: 10; }
+.notes { white-space: pre-wrap; color: var(--forge-text-muted); font-size: 13px; margin: 8px 0 0; max-height: 160px; overflow: auto; }
+.problems li { margin-bottom: 8px; color: var(--forge-text-muted); }
+.problems code { color: var(--forge-text); }
