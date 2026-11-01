@@ -1,0 +1,14 @@
+{
+  "id": "forge-core",
+  "name": "Forge Core",
+  "version": "0.1.0",
+  "executable": "Forge Core.exe",
+  "description": "Your game development codex: lore, quests, zones, mobs, items and skills, all linked together.",
+  "category": "design",
+  "icon": "icon.png",
+  "tags": ["lore", "worldbuilding", "database"],
+  "opens": [".forgecore", ".forgecodex"],
+  "updateSource": "https://github.com/Pentastic23/forge-suite/releases",
+  "channel": "stable",
+  "accent": "#0197F5"
+}

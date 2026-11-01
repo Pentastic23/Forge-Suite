@@ -7,6 +7,8 @@
   "scripts": {
     "hub:dev": "pnpm --filter forge-hub tauri dev",
     "hub:build": "pnpm --filter forge-hub tauri build",
+    "core:dev": "pnpm --filter forge-core tauri dev",
+    "core:build": "pnpm --filter forge-core tauri build",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test && cargo test --workspace"
   },

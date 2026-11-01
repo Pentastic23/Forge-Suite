@@ -5,7 +5,7 @@ Desktop tools for indie game developers, opened from one launcher.
 | App | What it does | Status |
 | --- | --- | --- |
 | **Forge Hub** | Launcher, installer and updater. The only way to open the other apps. | First version (this repo) |
-| **Forge Core** | Game Development Codex: lore, quests, zones, mobs, items, skills. | Planned |
+| **Forge Core** | Game Development Codex: lore, quests, zones, mobs, items, skills. | First version |
 | **Balance Forge** | Balancing, analysis and simulation of game systems. | Planned |
 | **Asset Forge** | Asset library, production tracking, checks and engine export. | Planned |
 | **Pixel Forge** | Doodle-to-pixel-art, rigging and animation. | Planned (remake) |
@@ -23,6 +23,7 @@ The full plan is in the Forge Suite Blueprint doc.
 
 ```
 apps/forge-hub/        Forge Hub (Tauri 2 + React + TypeScript)
+apps/forge-core/       Forge Core, the Game Development Codex
 packages/ui/           Shared React components and theme
 packages/formats/      Shared file formats (app manifest, exchange files)
 crates/launch-guard/   Single-use launch keys (used by Hub and every app)
@@ -78,6 +79,25 @@ Make the folder `%LOCALAPPDATA%\ForgeSuite\apps\demo-app\`, copy
 `target\release\examples\demo_app.exe` and `examples\demo-app\forge-app.json` into it,
 then press **Rescan** and **Launch** in Forge Hub. Double-clicking `demo_app.exe` directly
 shows that it refuses to start.
+
+## Forge Core
+
+```
+pnpm core:dev     # needs FORGE_DEV=1 when run outside Forge Hub (see below)
+pnpm core:build   # installer in target/release/bundle/nsis/
+```
+
+Apps refuse to start unless Forge Hub opened them. While developing, set `FORGE_DEV=1`
+to skip that check (debug builds only): in PowerShell, `$env:FORGE_DEV=1; pnpm core:dev`.
+
+To run a built Forge Core through Forge Hub, install it, copy
+`apps/forge-core/src-tauri/forge-app.json` next to `Forge Core.exe` (and an `icon.png`),
+and make sure that folder is inside one of Forge Hub's app folders.
+
+Each project is one `.forgecore` file (SQLite) in `Documents\Forge\Projects`. It holds the
+entries, tags, links between entries, full version history and a search index.
+Exports: `.forgecodex` (for the other Forge apps), JSON (full backup, can be imported),
+CSV and Markdown.
 
 ## Releases and updates
 

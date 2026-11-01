@@ -57,6 +57,7 @@ button { font: inherit; color: inherit; }
 }
 .forge-nav-item:hover { background: var(--forge-surface-2); color: var(--forge-text); }
 .forge-nav-item[aria-current="page"] { background: var(--forge-surface-2); color: var(--forge-text); box-shadow: inset 3px 0 0 var(--forge-accent); }
+.forge-nav-badge { margin-left: auto; font-size: 12px; color: var(--forge-text-muted); font-variant-numeric: tabular-nums; }
 .forge-nav-spacer { flex: 1; }
 .forge-main { overflow: auto; padding: 28px 32px; }
 .forge-page-title { font-size: 22px; font-weight: 700; margin: 0 0 4px; }

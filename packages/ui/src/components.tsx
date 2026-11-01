@@ -4,6 +4,8 @@ export interface NavItem<K extends string> {
   key: K;
   label: string;
   icon?: ReactNode;
+  /** Shown at the right end of the item, e.g. a count. */
+  badge?: ReactNode;
 }
 
 export function AppShell<K extends string>(props: {
@@ -12,6 +14,8 @@ export function AppShell<K extends string>(props: {
   footerNav?: NavItem<K>[];
   current: K;
   onNavigate: (key: K) => void;
+  /** Extra content under the brand, e.g. a project switcher. */
+  header?: ReactNode;
   children: ReactNode;
 }) {
   const item = (n: NavItem<K>) => (
@@ -23,6 +27,7 @@ export function AppShell<K extends string>(props: {
     >
       {n.icon}
       {n.label}
+      {n.badge !== undefined && <span className="forge-nav-badge">{n.badge}</span>}
     </button>
   );
   return (
@@ -32,6 +37,7 @@ export function AppShell<K extends string>(props: {
           <img src={props.brand.logo} alt="" />
           {props.brand.name}
         </div>
+        {props.header}
         {props.nav.map(item)}
         <div className="forge-nav-spacer" />
         {props.footerNav?.map(item)}
