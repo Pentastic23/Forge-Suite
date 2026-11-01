@@ -7,7 +7,7 @@ Desktop tools for indie game developers, opened from one launcher.
 | **Forge Hub** | Launcher, installer and updater. The only way to open the other apps. | First version (this repo) |
 | **Forge Core** | Game Development Codex: lore, quests, zones, mobs, items, skills. | First version |
 | **Balance Forge** | Balancing, analysis and simulation of game systems. | First version |
-| **Asset Forge** | Asset library, production tracking, checks and engine export. | Planned |
+| **Asset Forge** | Asset library, production tracking, checks and engine export. | First version |
 | **Pixel Forge** | Doodle-to-pixel-art, rigging and animation. | Planned (remake) |
 
 The full plan is in the Forge Suite Blueprint doc.
@@ -25,6 +25,7 @@ The full plan is in the Forge Suite Blueprint doc.
 apps/forge-hub/        Forge Hub (Tauri 2 + React + TypeScript)
 apps/forge-core/       Forge Core, the Game Development Codex
 apps/balance-forge/    Balance Forge, stat sheets, charts and simulations
+apps/asset-forge/      Asset Forge, the asset library, checks and engine export
 packages/ui/           Shared React components and theme
 packages/formats/      Shared file formats (app manifest, exchange files)
 crates/launch-guard/   Single-use launch keys (used by Hub and every app)
@@ -123,6 +124,34 @@ Each project is one `.balanceforge` file (SQLite) in `Documents\Forge\Projects`.
 Import: `.forgecodex` from Forge Core (one module per sheet; importing again updates those rows
 and keeps your own columns). Export: `.forgebalance` (for the other Forge apps) and CSV.
 Balance Forge never invents stats, items or mechanics; it only works with what you enter or import.
+
+## Asset Forge
+
+```
+pnpm asset:dev       # needs FORGE_DEV=1 outside Forge Hub, as above
+pnpm asset:build
+```
+
+Each project is one `.assetforge` file (SQLite) in `Documents\Forge\Projects`. Asset Forge reads
+your art, sound and model folders where they are; nothing is copied or uploaded. It holds:
+
+- **Library.** Thumbnails for every file, with filters by category, status, type, folder and tag,
+  and search. Rescanning notices new, changed, moved and missing files and keeps a version
+  history. Pixel-art previews zoom without blurring; sprite sheets and numbered frames play as
+  animations. Status (Placeholder, WIP, Review, Approved, Final), tags, author, licence and notes
+  can be set on one file or many.
+- **Checks.** Missing and duplicate files, oversized images and sounds, sizes that don't match the
+  rest of a set, gaps in numbered frames, incomplete UI states, naming rules, and textures that
+  aren't a power of two. It can also read a Unity or Godot project and list assets nothing uses.
+- **Production.** Imports a `.forgecodex` from Forge Core and lists the files each mob, item,
+  skill and zone needs. Link a file to each slot; a slot is done once its file is Approved or Final.
+- **Rename.** Batch rename with patterns, numbering and case, with a preview and one-step undo.
+- **Export.** Copies assets into a plain folder, Unity (with pixel-art `.meta` settings for new
+  files; existing `.meta` files are never touched), Godot or an Unreal staging folder, with
+  optional whole-number upscaling. Presets save an export to run again.
+
+Export for the other Forge apps: `.forgeasset`. Asset Forge never creates or edits art; it only
+organises, checks and copies the files you give it.
 
 ## Releases and updates
 
