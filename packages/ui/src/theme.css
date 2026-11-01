@@ -1,0 +1,97 @@
+/* Forge Suite shared theme. Colours sampled from the app logos. */
+:root {
+  --forge-bg: #1c2236;
+  --forge-surface: #202940;
+  --forge-surface-2: #283252;
+  --forge-border: #33406a;
+  --forge-text: #eef1f8;
+  --forge-text-muted: #9aa5c4;
+  --forge-gold: #edbb2f;
+  --forge-gold-strong: #f4c73e;
+  --forge-good: #3fcf8e;
+  --forge-warn: #f5a524;
+  --forge-bad: #f0566a;
+
+  /* Per-app accents. An app sets --forge-accent to its own. */
+  --forge-accent-hub: #edbb2f;
+  --forge-accent-core: #0197f5;
+  --forge-accent-balance: #19daf5;
+  --forge-accent-asset: #c9772e;
+  --forge-accent-pixel: #f96d14;
+  --forge-accent: var(--forge-accent-hub);
+
+  --forge-radius: 12px;
+  --forge-radius-sm: 8px;
+  --forge-shadow: 0 6px 24px rgba(4, 8, 20, 0.45);
+  --forge-glow: 0 0 0 1px var(--forge-accent), 0 0 18px color-mix(in srgb, var(--forge-accent) 35%, transparent);
+  --forge-font: "Inter", "Segoe UI", system-ui, sans-serif;
+  --forge-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body {
+  background: var(--forge-bg);
+  color: var(--forge-text);
+  font-family: var(--forge-font);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+::selection { background: color-mix(in srgb, var(--forge-accent) 40%, transparent); }
+
+.forge-shell { display: grid; grid-template-columns: 232px 1fr; height: 100%; }
+.forge-sidebar {
+  background: var(--forge-surface);
+  border-right: 1px solid var(--forge-border);
+  display: flex; flex-direction: column; padding: 16px 12px; gap: 4px;
+}
+.forge-brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 20px; font-weight: 700; font-size: 16px; }
+.forge-brand img { width: 36px; height: 36px; image-rendering: pixelated; }
+.forge-nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 0; background: transparent;
+  border-radius: var(--forge-radius-sm); color: var(--forge-text-muted); cursor: pointer; text-align: left;
+  transition: background 150ms var(--forge-ease), color 150ms var(--forge-ease);
+}
+.forge-nav-item:hover { background: var(--forge-surface-2); color: var(--forge-text); }
+.forge-nav-item[aria-current="page"] { background: var(--forge-surface-2); color: var(--forge-text); box-shadow: inset 3px 0 0 var(--forge-accent); }
+.forge-nav-spacer { flex: 1; }
+.forge-main { overflow: auto; padding: 28px 32px; }
+.forge-page-title { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+.forge-page-sub { color: var(--forge-text-muted); margin: 0 0 24px; }
+
+.forge-card {
+  background: var(--forge-surface); border: 1px solid var(--forge-border); border-radius: var(--forge-radius);
+  box-shadow: var(--forge-shadow); padding: 18px;
+  transition: transform 180ms var(--forge-ease), box-shadow 180ms var(--forge-ease), border-color 180ms var(--forge-ease);
+}
+.forge-card.interactive:hover { transform: translateY(-2px); border-color: var(--forge-accent); box-shadow: var(--forge-shadow), var(--forge-glow); }
+.forge-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+
+.forge-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px;
+  border-radius: var(--forge-radius-sm); border: 1px solid var(--forge-border); background: var(--forge-surface-2);
+  cursor: pointer; transition: filter 120ms, box-shadow 120ms;
+}
+.forge-btn:hover:not(:disabled) { filter: brightness(1.15); }
+.forge-btn:focus-visible { outline: none; box-shadow: var(--forge-glow); }
+.forge-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.forge-btn.primary { background: var(--forge-accent); border-color: transparent; color: #161b2b; font-weight: 600; }
+.forge-btn.ghost { background: transparent; }
+
+.forge-badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; background: var(--forge-surface-2); color: var(--forge-text-muted); }
+.forge-badge.good { color: var(--forge-good); }
+.forge-badge.warn { color: var(--forge-warn); }
+.forge-badge.bad { color: var(--forge-bad); }
+
+.forge-input {
+  background: var(--forge-bg); border: 1px solid var(--forge-border); border-radius: var(--forge-radius-sm);
+  color: var(--forge-text); padding: 8px 12px; font: inherit; min-width: 0;
+}
+.forge-input:focus { outline: none; box-shadow: var(--forge-glow); }
+.forge-empty { text-align: center; padding: 48px 24px; color: var(--forge-text-muted); }
+.forge-empty h3 { color: var(--forge-text); margin: 0 0 8px; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

@@ -1,0 +1,10 @@
+{
+  "id": "demo-app",
+  "name": "Demo App",
+  "version": "0.1.0",
+  "executable": "demo_app.exe",
+  "description": "A stand-in app for testing Forge Hub's launch key.",
+  "category": "testing",
+  "tags": ["demo"],
+  "accent": "#edbb2f"
+}
