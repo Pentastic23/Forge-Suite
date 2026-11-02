@@ -1,5 +1,6 @@
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import type { AppManifest } from "@forge/formats";
+import { SUITE_ICONS } from "./suiteIcons";
 
 export type AppHealth = "ready" | "missingExecutable";
 
@@ -53,8 +54,9 @@ export const api = {
   setProjectsFolder: (path: string | null) => invoke<ProjectsFolder>("set_projects_folder", { path }),
 };
 
+/** The suite's own apps use the logo bundled into Forge Hub; other apps use their manifest icon. */
 export function iconUrl(app: InstalledApp): string | undefined {
-  return app.iconPath ? convertFileSrc(app.iconPath) : undefined;
+  return SUITE_ICONS[app.manifest.id] ?? (app.iconPath ? convertFileSrc(app.iconPath) : undefined);
 }
 
 export function errorText(e: unknown): string {

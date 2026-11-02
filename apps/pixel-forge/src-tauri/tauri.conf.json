@@ -28,6 +28,7 @@
   "bundle": {
     "active": true,
     "targets": ["nsis"],
+    "resources": { "forge-app.json": "forge-app.json", "icons/icon.png": "icon.png" },
     "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.ico"],
     "fileAssociations": [
       { "ext": ["pixelforge"], "name": "Pixel Forge project", "description": "Pixel Forge project" }

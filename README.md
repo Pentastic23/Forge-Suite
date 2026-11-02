@@ -97,9 +97,11 @@ pnpm core:build   # installer in target/release/bundle/nsis/
 Apps refuse to start unless Forge Hub opened them. While developing, set `FORGE_DEV=1`
 to skip that check (debug builds only): in PowerShell, `$env:FORGE_DEV=1; pnpm core:dev`.
 
-To run a built Forge Core through Forge Hub, install it, copy
-`apps/forge-core/src-tauri/forge-app.json` next to `Forge Core.exe` (and an `icon.png`),
-and make sure that folder is inside one of Forge Hub's app folders.
+To run a built Forge Core through Forge Hub, install it into a folder inside one of
+Forge Hub's app folders. The installer puts `forge-app.json` and `icon.png` next to
+`Forge Core.exe`. If you copy the `.exe` by hand instead, copy
+`apps/forge-core/src-tauri/forge-app.json` with it. Forge Hub shows the suite's own logos
+on its tiles either way.
 
 Each project is one `.forgecore` file (SQLite) in the projects folder. It holds the
 entries, tags, links between entries, full version history and a search index.
