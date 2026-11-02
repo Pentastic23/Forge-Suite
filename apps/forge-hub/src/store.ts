@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api, errorText, type ScanResult } from "./api";
 
 /** Favourites and pins are a per-user convenience, kept in the webview. */
@@ -39,10 +39,19 @@ export function useApps() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
 
+  const lastCount = useRef(0);
+
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [s, r] = await Promise.all([api.listApps(), api.recentApps()]);
+      const [first, r] = await Promise.all([api.listApps(), api.recentApps()]);
+      let s = first;
+      // Apps don't vanish between two scans: if they seem to, look again before showing an empty list.
+      for (let i = 0; i < 2 && s.apps.length === 0 && lastCount.current > 0; i++) {
+        await new Promise((res) => setTimeout(res, 1500));
+        s = await api.listApps();
+      }
+      lastCount.current = s.apps.length;
       setScan(s);
       setRecent(r);
       setError(undefined);
