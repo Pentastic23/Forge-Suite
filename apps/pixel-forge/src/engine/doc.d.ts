@@ -1,0 +1,15 @@
+import type { Asset } from "./core";
+export const DOC_VERSION: number;
+export type SketchDoc = Record<string, unknown>;
+export function rleOut(arr: ArrayLike<number>): number[];
+export function rleIn(list: number[], size: number): Int32Array;
+export function assetToDoc(a: Asset): SketchDoc;
+export function docToAsset(id: number, name: string, src: ImageData, doc: unknown): Asset;
+export function imageDataToCanvas(im: ImageData): HTMLCanvasElement;
+export function canvasToPngB64(c: HTMLCanvasElement): string;
+export function imageToPngB64(im: ImageData): string;
+export function urlToImageData(url: string, max: number): Promise<ImageData>;
+export function pngB64ToImageData(b64: string, max?: number): Promise<ImageData>;
+export function fileToImageData(file: File, max: number): Promise<ImageData>;
+export function exampleSketch(): ImageData;
+export function exampleAsset(): Asset;
