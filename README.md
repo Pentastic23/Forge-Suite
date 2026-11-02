@@ -57,8 +57,13 @@ pnpm hub:build    # makes the installer in target/release/bundle/nsis/
 
 ## Installing an app for Forge Hub to find
 
-Forge Hub scans `%LOCALAPPDATA%\ForgeSuite\apps\` (you can add more folders in Settings).
-Each app goes in its own subfolder with a `forge-app.json` next to its `.exe`:
+Forge Hub always searches the usual install places, whatever Settings holds:
+`%LOCALAPPDATA%\ForgeSuite\apps\`, the folder Forge Hub runs from (and its parent and
+`apps` subfolder), `E:\Forge Hub` (also `C:` and `D:`), each app's installer folder
+(`%LOCALAPPDATA%\<App name>`, Program Files) and the install folders Windows records for
+the suite's apps. Folders added in Settings are searched first, as extras. Each app goes in
+its own subfolder with a `forge-app.json` next to its `.exe`. If two copies share an id, the
+one whose `.exe` is present wins, so a source folder can't hide an installed app:
 
 ```json
 {

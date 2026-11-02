@@ -129,32 +129,50 @@ fn read_manifest(path: &Path) -> Result<AppManifest, Vec<String>> {
     }
 }
 
-/// Scans each folder's direct subfolders for a manifest. The first app found
-/// with a given id wins; later duplicates are reported as problems.
+/// Scans each folder, and its direct subfolders, for a manifest. When two
+/// apps share an id, one whose executable is present beats one without (so a
+/// source checkout can't hide the installed app); otherwise the first wins and
+/// later duplicates are reported as problems.
 pub fn scan(folders: &[PathBuf]) -> ScanResult {
     let mut result = ScanResult::default();
+    let mut seen: Vec<PathBuf> = Vec::new();
     for root in folders {
         let Ok(entries) = fs::read_dir(root) else { continue };
         let mut dirs: Vec<PathBuf> = entries.flatten().map(|e| e.path()).filter(|p| p.is_dir()).collect();
         dirs.sort();
+        dirs.insert(0, root.clone());
         for folder in dirs {
             let manifest_path = folder.join(MANIFEST_FILE);
             if !manifest_path.is_file() {
                 continue;
             }
+            let key = fs::canonicalize(&manifest_path).unwrap_or_else(|_| manifest_path.clone());
+            if seen.contains(&key) {
+                continue;
+            }
+            seen.push(key);
             match read_manifest(&manifest_path) {
                 Ok(manifest) => {
-                    if result.apps.iter().any(|a| a.manifest.id == manifest.id) {
-                        result.problems.push(ScanProblem {
-                            path: manifest_path,
-                            errors: vec![format!("another app already uses the id \"{}\"", manifest.id)],
-                        });
-                        continue;
-                    }
                     let executable_path = folder.join(&manifest.executable);
                     let icon_path = manifest.icon.as_ref().map(|i| folder.join(i)).filter(|p| p.is_file());
                     let health = if executable_path.is_file() { AppHealth::Ready } else { AppHealth::MissingExecutable };
-                    result.apps.push(InstalledApp { manifest, folder, executable_path, icon_path, health });
+                    let app = InstalledApp { manifest, folder, executable_path, icon_path, health };
+                    match result.apps.iter().position(|a| a.manifest.id == app.manifest.id) {
+                        None => result.apps.push(app),
+                        Some(i) => {
+                            let existing = &result.apps[i];
+                            if existing.health == AppHealth::MissingExecutable && app.health == AppHealth::Ready {
+                                result.apps[i] = app;
+                            } else if app.health == AppHealth::MissingExecutable && existing.health == AppHealth::Ready {
+                                // A copy without its program (e.g. the source folder); the working one is used.
+                            } else {
+                                result.problems.push(ScanProblem {
+                                    path: manifest_path,
+                                    errors: vec![format!("another app already uses the id \"{}\"", app.manifest.id)],
+                                });
+                            }
+                        }
+                    }
                 }
                 Err(errors) => result.problems.push(ScanProblem { path: manifest_path, errors }),
             }
@@ -193,9 +211,32 @@ mod tests {
         assert_eq!(names, ["Balance Forge", "Forge Core"]);
         assert_eq!(r.apps[0].health, AppHealth::MissingExecutable);
         assert_eq!(r.apps[1].health, AppHealth::Ready);
-        assert_eq!(r.problems.len(), 3);
+        // "zdupe" has no program and a working forge-core exists, so it is skipped quietly.
+        assert_eq!(r.problems.len(), 2);
         let broken = r.problems.iter().find(|p| p.path.starts_with(root.join("broken"))).unwrap();
         assert_eq!(broken.errors.len(), 3);
+    }
+
+    #[test]
+    fn working_copy_beats_one_without_its_program() {
+        let tmp = tempfile::tempdir().unwrap();
+        let source = tmp.path().join("source");
+        let installed = tmp.path().join("installed");
+        let json = r#"{"id":"pixel-forge","name":"Pixel Forge","version":"0.1.0","executable":"Pixel Forge.exe"}"#;
+        // The source folder holds just a manifest, and is itself the folder listed in Settings.
+        fs::create_dir_all(&source).unwrap();
+        fs::write(source.join(MANIFEST_FILE), json).unwrap();
+        write_app(&installed, "pixel-forge", json, Some("Pixel Forge.exe"));
+
+        let r = scan(&[source.clone(), installed.clone(), installed.clone()]);
+        assert_eq!(r.apps.len(), 1);
+        assert_eq!(r.apps[0].health, AppHealth::Ready);
+        assert!(r.apps[0].folder.starts_with(&installed));
+        assert!(r.problems.is_empty(), "{:?}", r.problems);
+
+        // A folder that is itself an app is found too.
+        let r = scan(&[installed.join("pixel-forge")]);
+        assert_eq!(r.apps.len(), 1);
     }
 
     #[test]

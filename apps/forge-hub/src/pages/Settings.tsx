@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { open as pickFolder } from "@tauri-apps/plugin-dialog";
 import { Button, Card, PageHeader } from "@forge/ui";
-import { api, errorText, type ProjectsFolder, type Settings as SettingsT } from "../api";
+import { api, errorText, type ProjectsFolder, type SearchFolder, type Settings as SettingsT } from "../api";
 
 /** Where every Forge app keeps its project files. */
 function ProjectsFolderCard(props: { notify: (msg: string, bad?: boolean) => void }) {
@@ -50,10 +50,13 @@ export function Settings(props: { onSaved: () => void; notify: (msg: string, bad
   const [s, setS] = useState<SettingsT>();
   const [paths, setPaths] = useState<Record<string, string>>({});
   const [newFolder, setNewFolder] = useState("");
+  const [autoFolders, setAutoFolders] = useState<string[]>([]);
+  const loadAuto = () => api.appSearchFolders().then((f: SearchFolder[]) => setAutoFolders(f.filter((x) => x.source === "auto").map((x) => x.path))).catch(() => undefined);
 
   useEffect(() => {
     api.getSettings().then(setS).catch((e) => props.notify(errorText(e), true));
     api.hubPaths().then(setPaths).catch(() => undefined);
+    void loadAuto();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!s) return <PageHeader title="Settings" subtitle="Loading…" />;
@@ -63,6 +66,7 @@ export function Settings(props: { onSaved: () => void; notify: (msg: string, bad
     try {
       await api.saveSettings(next);
       props.onSaved();
+      void loadAuto();
     } catch (e) {
       props.notify(errorText(e), true);
     }
@@ -81,7 +85,7 @@ export function Settings(props: { onSaved: () => void; notify: (msg: string, bad
       <Card>
         <div className="settings-row" style={{ display: "block" }}>
           <div>App folders</div>
-          <div className="hint">Forge Hub looks in each of these for app subfolders that contain a forge-app.json file.</div>
+          <div className="hint">Forge Hub always finds apps in the usual install places listed below. Add a folder here only if you keep apps somewhere else. Each app needs its own subfolder with a forge-app.json file.</div>
           <div className="folder-list">
             {s.appFolders.map((f) => (
               <div className="row" key={f}>
@@ -95,6 +99,19 @@ export function Settings(props: { onSaved: () => void; notify: (msg: string, bad
               <Button onClick={addFolder} disabled={!newFolder.trim()}>Add folder</Button>
             </div>
           </div>
+          {autoFolders.length > 0 && (
+            <>
+              <div className="hint" style={{ marginTop: 12 }}>Always searched</div>
+              <div className="folder-list">
+                {autoFolders.map((f) => (
+                  <div className="row" key={f}>
+                    <code title={f}>{f}</code>
+                    <Button onClick={() => open(f)}>Open</Button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
         <label className="settings-row">
           <div><div>Minimise Forge Hub after launching an app</div></div>

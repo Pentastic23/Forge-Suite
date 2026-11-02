@@ -24,6 +24,12 @@ export interface Settings {
   logRetentionDays: number;
 }
 
+export interface SearchFolder {
+  path: string;
+  /** "setting" for a folder added in Settings, "auto" for one Forge Hub always searches. */
+  source: "setting" | "auto";
+}
+
 export interface ProjectsFolder {
   path: string;
   source: "env" | "setting" | "default";
@@ -49,6 +55,7 @@ export const api = {
   saveSettings: (settings: Settings) => invoke<void>("save_settings", { settings }),
   readLogs: (limit?: number) => invoke<LogEntry[]>("read_logs", { limit }),
   hubPaths: () => invoke<Record<"data" | "defaultApps" | "launchKeys", string>>("hub_paths"),
+  appSearchFolders: () => invoke<SearchFolder[]>("app_search_folders"),
   openFolder: (path: string) => invoke<void>("open_folder", { path }),
   projectsFolder: () => invoke<ProjectsFolder>("projects_folder"),
   setProjectsFolder: (path: string | null) => invoke<ProjectsFolder>("set_projects_folder", { path }),
