@@ -182,6 +182,43 @@ pub fn scan(folders: &[PathBuf]) -> ScanResult {
     result
 }
 
+/// Apps built from a Forge Suite source checkout but never installed: each
+/// `apps/<app>/src-tauri/forge-app.json` paired with its program in
+/// `target/release`. Only builds whose program exists are returned.
+pub fn scan_builds(repo_roots: &[PathBuf]) -> Vec<InstalledApp> {
+    let mut out: Vec<InstalledApp> = Vec::new();
+    for repo in repo_roots {
+        let release = repo.join("target").join("release");
+        let Ok(entries) = fs::read_dir(repo.join("apps")) else { continue };
+        let mut dirs: Vec<PathBuf> = entries.flatten().map(|e| e.path()).collect();
+        dirs.sort();
+        for app_dir in dirs {
+            let src = app_dir.join("src-tauri");
+            let Ok(manifest) = read_manifest(&src.join(MANIFEST_FILE)) else { continue };
+            let executable_path = release.join(&manifest.executable);
+            if !executable_path.is_file() || out.iter().any(|a| a.manifest.id == manifest.id) {
+                continue;
+            }
+            let icon_path = [release.join("icon.png"), src.join("icons").join("icon.png")].into_iter().find(|p| p.is_file());
+            out.push(InstalledApp { manifest, folder: release.clone(), executable_path, icon_path, health: AppHealth::Ready });
+        }
+    }
+    out
+}
+
+/// Adds apps found by other means where no working copy with the same id is
+/// known yet.
+pub fn merge_fallback(result: &mut ScanResult, extra: Vec<InstalledApp>) {
+    for app in extra {
+        match result.apps.iter().position(|a| a.manifest.id == app.manifest.id) {
+            None => result.apps.push(app),
+            Some(i) if result.apps[i].health != AppHealth::Ready && app.health == AppHealth::Ready => result.apps[i] = app,
+            Some(_) => {}
+        }
+    }
+    result.apps.sort_by(|a, b| a.manifest.name.to_lowercase().cmp(&b.manifest.name.to_lowercase()));
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -237,6 +274,31 @@ mod tests {
         // A folder that is itself an app is found too.
         let r = scan(&[installed.join("pixel-forge")]);
         assert_eq!(r.apps.len(), 1);
+    }
+
+    #[test]
+    fn finds_uninstalled_builds_in_a_source_checkout() {
+        let tmp = tempfile::tempdir().unwrap();
+        let repo = tmp.path();
+        let json = r#"{"id":"forge-core","name":"Forge Core","version":"0.1.0","executable":"Forge Core.exe","icon":"icon.png"}"#;
+        fs::create_dir_all(repo.join("apps/forge-core/src-tauri/icons")).unwrap();
+        fs::write(repo.join("apps/forge-core/src-tauri").join(MANIFEST_FILE), json).unwrap();
+        fs::write(repo.join("apps/forge-core/src-tauri/icons/icon.png"), b"").unwrap();
+        // Built but not yet: no app.
+        assert!(scan_builds(&[repo.to_path_buf()]).is_empty());
+        fs::create_dir_all(repo.join("target/release")).unwrap();
+        fs::write(repo.join("target/release/Forge Core.exe"), b"").unwrap();
+        let builds = scan_builds(&[repo.to_path_buf()]);
+        assert_eq!(builds.len(), 1);
+        assert!(builds[0].icon_path.is_some());
+
+        // An installed copy wins over the build; a missing one is replaced by it.
+        let mut r = ScanResult::default();
+        merge_fallback(&mut r, builds.clone());
+        assert_eq!(r.apps.len(), 1);
+        r.apps[0].health = AppHealth::MissingExecutable;
+        merge_fallback(&mut r, builds);
+        assert_eq!(r.apps[0].health, AppHealth::Ready);
     }
 
     #[test]

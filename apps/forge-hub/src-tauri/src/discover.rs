@@ -42,7 +42,8 @@ pub fn auto_folders() -> Vec<PathBuf> {
 
     for root in WELL_KNOWN_ROOTS {
         let root = PathBuf::from(root);
-        out.push(root.join("Apps"));
+        // One level deeper too, so E:\Forge Hub\<any folder>\<app>\ is found.
+        out.extend(subdirs(&root));
         out.push(root);
     }
 
@@ -66,6 +67,51 @@ pub fn auto_folders() -> Vec<PathBuf> {
 
     dedupe(out.into_iter().filter(|p| p.is_dir()).collect())
 }
+
+fn subdirs(dir: &Path) -> Vec<PathBuf> {
+    let mut v: Vec<PathBuf> = std::fs::read_dir(dir)
+        .map(|it| it.flatten().map(|e| e.path()).filter(|p| p.is_dir()).collect())
+        .unwrap_or_default();
+    v.sort();
+    v
+}
+
+fn is_repo(dir: &Path) -> bool {
+    dir.join("Cargo.toml").is_file() && dir.join("apps").is_dir()
+}
+
+/// Forge Suite source checkouts whose `target\release` may hold built apps:
+/// any folder above Forge Hub's own program, and folders inside the
+/// well-known roots (such as E:\Forge Hub\Forge-Suite).
+pub fn repo_roots() -> Vec<PathBuf> {
+    let mut out = Vec::new();
+    if let Ok(exe) = std::env::current_exe() {
+        out.extend(exe.ancestors().skip(1).filter(|p| is_repo(p)).map(Path::to_path_buf));
+    }
+    for root in WELL_KNOWN_ROOTS {
+        let root = PathBuf::from(root);
+        if is_repo(&root) {
+            out.push(root.clone());
+        }
+        out.extend(subdirs(&root).into_iter().filter(|p| is_repo(p)));
+    }
+    dedupe(out)
+}
+
+/// Finds every app: Settings folders, the automatic folders, then (for apps
+/// still missing) builds in a source checkout.
+pub fn find_apps(from_settings: &[PathBuf]) -> crate::registry::ScanResult {
+    let mut result = crate::registry::scan(&paths_of(&search_folders(from_settings)));
+    let missing_or_broken = SUITE_IDS
+        .iter()
+        .any(|id| !result.apps.iter().any(|a| a.manifest.id == *id && a.health == crate::registry::AppHealth::Ready));
+    if missing_or_broken {
+        crate::registry::merge_fallback(&mut result, crate::registry::scan_builds(&repo_roots()));
+    }
+    result
+}
+
+const SUITE_IDS: [&str; 4] = ["forge-core", "balance-forge", "asset-forge", "pixel-forge"];
 
 /// Folders from Settings first (they win on ties), then the automatic ones.
 pub fn search_folders(from_settings: &[PathBuf]) -> Vec<SearchFolder> {

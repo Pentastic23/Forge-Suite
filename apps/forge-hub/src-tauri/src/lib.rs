@@ -32,7 +32,7 @@ fn save_settings(settings: Settings) -> Result<(), String> {
 #[tauri::command]
 fn list_apps() -> ScanResult {
     let s = settings::load(&hub_dir());
-    let result = registry::scan(&discover::paths_of(&discover::search_folders(&s.app_folders)));
+    let result = discover::find_apps(&s.app_folders);
     for p in &result.problems {
         activity::log(&hub_dir(), Level::Warn, "hub", format!("Skipped {}: {}", p.path.display(), p.errors.join("; ")));
     }
@@ -53,7 +53,7 @@ fn recent_apps() -> HashMap<String, u64> {
 #[tauri::command]
 fn launch_app(app: tauri::AppHandle, id: String, args: Option<Vec<String>>) -> Result<u32, String> {
     let s = settings::load(&hub_dir());
-    let scan = registry::scan(&discover::paths_of(&discover::search_folders(&s.app_folders)));
+    let scan = discover::find_apps(&s.app_folders);
     let found = scan.apps.iter().find(|a| a.manifest.id == id).ok_or_else(|| format!("No installed app with id \"{id}\""))?;
     let pid = launcher::launch(found, &hub_dir(), &forge_launch_guard::default_launch_dir(), &args.unwrap_or_default())?;
     if s.close_on_launch {

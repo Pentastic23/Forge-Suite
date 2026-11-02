@@ -67,7 +67,7 @@ export function Applications(props: {
       </div>
 
       {shown.length === 0 ? (
-        <Card><EmptyState title={props.apps.length ? "No apps match" : "No apps installed"}>{props.apps.length ? <p>Try a different search.</p> : <p>Add an app folder in Settings, then press Rescan.</p>}</EmptyState></Card>
+        <Card><EmptyState title={props.apps.length ? "No apps match" : "No apps installed"}>{props.apps.length ? <p>Try a different search.</p> : <p>Forge Hub searched every usual install place and found no Forge apps. If yours are somewhere else, add that folder in Settings.</p>}</EmptyState></Card>
       ) : (
         <div className="forge-grid">
           {shown.map((a) => (
