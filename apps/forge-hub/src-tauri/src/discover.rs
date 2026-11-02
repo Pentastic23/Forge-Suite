@@ -32,8 +32,9 @@ pub fn auto_folders() -> Vec<PathBuf> {
     if let Some(exe_dir) = std::env::current_exe().ok().and_then(|p| p.parent().map(Path::to_path_buf)) {
         out.push(exe_dir.join("apps"));
         out.push(exe_dir.join("Apps"));
-        if let Some(parent) = exe_dir.parent() {
-            // Installed as <root>\Forge Hub\Forge Hub.exe: the apps are siblings.
+        // Installed as <root>\Forge Hub\Forge Hub.exe: the apps are siblings.
+        // A drive root such as E:\ is skipped, since that would search the whole drive's top level.
+        if let Some(parent) = exe_dir.parent().filter(|p| !is_drive_root(p)) {
             out.push(parent.to_path_buf());
         }
         out.push(exe_dir);
@@ -85,6 +86,11 @@ pub fn search_folders(from_settings: &[PathBuf]) -> Vec<SearchFolder> {
 
 pub fn paths_of(folders: &[SearchFolder]) -> Vec<PathBuf> {
     folders.iter().map(|f| f.path.clone()).collect()
+}
+
+/// `E:\`, `E:` or `/`: a folder with no parent of its own.
+fn is_drive_root(p: &Path) -> bool {
+    p.parent().is_none() || p.parent().is_some_and(|q| q.as_os_str().is_empty())
 }
 
 fn same_path(a: &Path, b: &Path) -> bool {
@@ -163,6 +169,16 @@ mod tests {
         // The default apps folder is searched only once it exists, but never depends on Settings.
         for f in folders.iter().filter(|f| f.source == "auto") {
             assert!(f.path.is_dir());
+        }
+    }
+
+    #[test]
+    fn drive_roots_are_not_searched() {
+        assert!(is_drive_root(Path::new("/")));
+        assert!(!is_drive_root(Path::new("/home")));
+        if cfg!(windows) {
+            assert!(is_drive_root(Path::new("E:\\")));
+            assert!(!is_drive_root(Path::new("E:\\Forge Hub")));
         }
     }
 
