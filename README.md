@@ -8,7 +8,7 @@ Desktop tools for indie game developers, opened from one launcher.
 | **Forge Core** | Game Development Codex: lore, quests, zones, mobs, items, skills. | First version |
 | **Balance Forge** | Balancing, analysis and simulation of game systems. | First version |
 | **Asset Forge** | Asset library, production tracking, checks and engine export. | First version |
-| **Pixel Forge** | Doodle-to-pixel-art, rigging and animation. | Planned (remake) |
+| **Pixel Forge** | Sketch-to-pixel-art, rigging, animation and engine export. | First version |
 
 The full plan is in the Forge Suite Blueprint doc.
 
@@ -26,6 +26,7 @@ apps/forge-hub/        Forge Hub (Tauri 2 + React + TypeScript)
 apps/forge-core/       Forge Core, the Game Development Codex
 apps/balance-forge/    Balance Forge, stat sheets, charts and simulations
 apps/asset-forge/      Asset Forge, the asset library, checks and engine export
+apps/pixel-forge/      Pixel Forge, sketches to pixel art, rigging, animation and export
 packages/ui/           Shared React components and theme
 packages/formats/      Shared file formats (app manifest, exchange files)
 crates/launch-guard/   Single-use launch keys (used by Hub and every app)
@@ -153,6 +154,36 @@ your art, sound and model folders where they are; nothing is copied or uploaded.
 
 Export for the other Forge apps: `.forgeasset`. Asset Forge never creates or edits art; it only
 organises, checks and copies the files you give it.
+
+## Pixel Forge
+
+```
+pnpm pixel:dev       # needs FORGE_DEV=1 outside Forge Hub, as above
+pnpm pixel:build
+```
+
+Each project is one `.pixelforge` file (SQLite) in the projects folder. Pixel Forge is the
+remake of Sprite Foundry: its conversion engine is carried over as it was, so every pixel is
+computed from the sketch you give it and no image model runs.
+
+- **Studio.** Tools on the left, the sprite in the middle, properties on the right and the
+  timeline below. A sketch (a photo of paper or any image) has its background removed and
+  becomes pixel art at 16, 32, 48, 64 and 128 px, each size with its own rules. Paint touch-ups
+  with pencil, eraser, fill, line, box and shade tools (mirror and dither included); remove a
+  shadow or color a part right on the sketch. Palettes come from your sketches or a fixed list
+  (import `.hex`, `.gpl`, `.txt` or an image), with materials, shade ramps and color variants.
+- **Rigging and animation.** Auto-rig for humanoids and creatures, or draw bones by hand, with
+  layers and painted weights. Nine preset animations (idle, walk, run, attack, cast, jump, hit,
+  death, victory), quick motions, keys with easing, onion skin, and copying an animation to
+  another sketch with matching bones.
+- **Style.** Style presets, saved style profiles, and Style Training, which measures your own
+  finished sprites (palette, outline, shading, light, proportions) and makes them the rules.
+- **Library.** Folders (Characters, Enemies, Effects, Buildings, UI, Icons, Animations and your
+  own), tags, search and favourites.
+- **Export.** One folder or zip with Godot 4 SpriteFrames, Unity sliced sheets and animation
+  clips, GameMaker strips, Spine skeletons, PNG sequences and sprite sheet JSON (Phaser,
+  Defold, PixiJS), plus the palette, the style profile and a README of import steps.
+  Asset Forge can index the exported folder.
 
 ## Projects folder
 

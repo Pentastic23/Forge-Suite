@@ -1,0 +1,14 @@
+{
+  "id": "pixel-forge",
+  "name": "Pixel Forge",
+  "version": "0.1.0",
+  "executable": "Pixel Forge.exe",
+  "description": "Turn sketches into game-ready pixel art at 16 to 128 px, then rig, animate and export them for your engine.",
+  "category": "creation",
+  "icon": "icon.png",
+  "tags": ["pixel art", "sprites", "animation", "rigging"],
+  "opens": [".pixelforge"],
+  "updateSource": "https://github.com/Pentastic23/forge-suite/releases",
+  "channel": "stable",
+  "accent": "#F96D14"
+}
