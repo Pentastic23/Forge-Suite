@@ -1,3 +1,4 @@
+mod ai;
 mod export;
 mod projects;
 mod store;
@@ -41,6 +42,8 @@ struct SketchOut {
     name: String,
     png: String,
     doc: serde_json::Value,
+    /// The AI-colored version, base64 PNG, when one was made.
+    ai_png: Option<String>,
     folder: String,
     tags: Vec<String>,
     favorite: bool,
@@ -162,20 +165,24 @@ fn activity(state: tauri::State<AppState>, limit: i64) -> CmdResult<Vec<Event>> 
 #[tauri::command]
 fn sketches_list(state: tauri::State<AppState>) -> CmdResult<Vec<SketchOut>> {
     with_project(&state, |p| {
-        Ok(p.sketches()?
-            .into_iter()
-            .map(|s| SketchOut {
+        let list = p.sketches()?;
+        let mut out = Vec::with_capacity(list.len());
+        for s in list {
+            let ai_png = p.ai_image(s.id)?.map(|b| b64().encode(b));
+            out.push(SketchOut {
                 id: s.id,
                 name: s.name,
                 png: b64().encode(&s.png),
                 doc: s.doc,
+                ai_png,
                 folder: s.folder,
                 tags: s.tags,
                 favorite: s.favorite,
                 created_at: s.created_at,
                 updated_at: s.updated_at,
-            })
-            .collect())
+            });
+        }
+        Ok(out)
     })
 }
 
@@ -286,6 +293,49 @@ fn read_image(state: tauri::State<AppState>, path: PathBuf) -> CmdResult<String>
     Ok(b64().encode(bytes))
 }
 
+// ---------------------------------------------------------------- AI coloring (optional, the person's own OpenAI key)
+
+#[tauri::command]
+fn ai_has_key() -> bool {
+    ai::has_key()
+}
+
+#[tauri::command]
+fn ai_set_key(state: tauri::State<AppState>, key: String) -> CmdResult<()> {
+    allowed(&state)?;
+    ai::set_key(&key)
+}
+
+#[tauri::command]
+fn ai_clear_key(state: tauri::State<AppState>) -> CmdResult<()> {
+    allowed(&state)?;
+    ai::clear_key()
+}
+
+/// Sends one sketch to OpenAI and keeps the colored result with the sketch.
+#[tauri::command]
+async fn ai_color(state: tauri::State<'_, AppState>, id: i64, req: ai::ColorRequest) -> CmdResult<ai::ColorResult> {
+    allowed(&state)?;
+    let quality = req.quality.clone();
+    let res = ai::color_sketch(req).await?;
+    let png = b64().decode(&res.png).map_err(|_| "OpenAI's image couldn't be read".to_string())?;
+    with_project(&state, |p| {
+        p.set_ai_image(id, Some(&png))?;
+        let how = if res.mock { "test mode, nothing sent".to_string() } else { format!("OpenAI, {} quality", ai::clean_quality(&quality)) };
+        p.log("AI colored", &format!("Sketch {id} ({how})"))
+    })?;
+    Ok(res)
+}
+
+#[tauri::command]
+fn ai_image_set(state: tauri::State<AppState>, id: i64, png: Option<String>) -> CmdResult<()> {
+    let png = match png {
+        Some(s) => Some(b64().decode(s).map_err(|_| "The image could not be read".to_string())?),
+        None => None,
+    };
+    with_project(&state, |p| p.set_ai_image(id, png.as_deref()))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let launch_error = forge_launch_guard::verify_from_env(APP_ID).err().map(|e| e.to_string());
@@ -319,7 +369,12 @@ pub fn run() {
             export_write,
             export_file,
             read_text,
-            read_image
+            read_image,
+            ai_has_key,
+            ai_set_key,
+            ai_clear_key,
+            ai_color,
+            ai_image_set
         ])
         .run(tauri::generate_context!())
         .expect("error while running Pixel Forge");

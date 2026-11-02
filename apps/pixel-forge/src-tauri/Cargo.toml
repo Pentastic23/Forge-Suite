@@ -23,6 +23,8 @@ rusqlite = { version = "0.32", features = ["bundled"] }
 uuid = { version = "1", features = ["v4"] }
 zip = { version = "2", default-features = false, features = ["deflate"] }
 dirs = "5"
+reqwest = { version = "0.13", default-features = false, features = ["native-tls", "multipart", "json"] }
+keyring = { version = "3", features = ["windows-native"] }
 forge-launch-guard = { path = "../../../crates/launch-guard" }
 forge-paths = { path = "../../../crates/forge-paths" }
 

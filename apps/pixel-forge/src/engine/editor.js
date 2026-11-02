@@ -490,6 +490,25 @@ function colorAt(a, p){
 export function clearColors(){ const a = cur(); if (!a || !(a.colorPts || []).length) return toast('No colored areas on this sketch'); pushUndo(a); a.colorPts = []; bumpAll(a); emit(); toast('Area colors cleared'); }
 export function clearErase(){ const a = cur(); if (!a || !a.erasePts.length) return toast('No removed areas on this sketch'); pushUndo(a); a.erasePts = []; bumpAll(a); emit(); toast('Removed areas restored'); }
 
+// ---------------------------------------------------------------- AI coloring (optional; the app sends the request, see src/ai.ts)
+// the instructions around the person's own words: keep the drawing, make it clean and colored, nothing extra
+export function buildAIPrompt(user){
+  const light = {tl:'top left', t:'top', tr:'top right'}[S.light] || 'top left';
+  const pal = S.lockPalette ? ' Use only these colors: ' + P.rgb.slice(0, P.baseCount).map(hex).join(', ') + '.' : '';
+  return 'Color and clean up this hand-drawn character sketch into a finished 2D game character illustration. ' +
+    'Keep exactly the same pose, proportions, silhouette, framing and every drawn detail; do not add or remove any parts. ' +
+    'Bold, clean, closed dark outlines. Flat colors with simple two-tone cel shading, light from the ' + light + '. ' +
+    'Fully transparent background, no ground shadow, no text, no extra objects.' + pal +
+    (user && user.trim() ? ' Colors and details: ' + user.trim().slice(0, 600) : '');
+}
+// the image size closest to the sketch's shape
+export function aiSizeFor(a){ const r = a.src.width / a.src.height; return r < 0.8 ? '1024x1536' : r > 1.25 ? '1536x1024' : '1024x1024'; }
+const aiChanged = a => { bumpAll(a); if (S.paletteMode === 'auto') lastAutoKey = ''; touch(a); emit(); };
+// a new AI version (or null to drop it); a new one is used straight away
+export function setAIImage(a, im){ a.aiSrc = im || null; a.useAI = !!im; a.aiVer = (a.aiVer || 0) + 1; aiChanged(a); }
+export function chooseAI(use){ const a = cur(); if (!a || !a.aiSrc || a.useAI === use) return; a.useAI = use; aiChanged(a); }
+export function setAIPrompt(text){ const a = cur(); if (!a) return; a.aiPrompt = String(text).slice(0, 600); touch(a); emit(); }
+
 // ---------------------------------------------------------------- settings
 export function setSetting(k, v){
   S[k] = v; touchSettings();

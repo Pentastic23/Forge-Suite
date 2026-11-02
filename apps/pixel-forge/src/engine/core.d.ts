@@ -13,6 +13,8 @@ export interface Asset {
   fedits: Record<number, Record<number, Record<number, Map<number, string | null>>>>;
   erasePts: { x: number; y: number }[]; colorPts?: { x: number; y: number; hex: string }[];
   facing: "left" | "right"; rig: Rig; anims: Anim[]; curAnim: number; aiPrompt?: string;
+  /** The AI-colored version, when one was made, and whether it is used instead of the sketch. */
+  aiSrc?: ImageData | null; useAI?: boolean; aiVer?: number;
   pre?: { unpainted?: number; filledPaper?: boolean; d: Uint8ClampedArray; w: number; h: number };
 }
 export type Profile = { lines: "redraw" | "keep"; inner: boolean; colors: number; simplify: number; shade: string; olPos: "in" | "out" };
@@ -36,6 +38,7 @@ export function newAnim(name: string): Anim;
 export function hex(c: RGB | number[]): string;
 export function unhex(h: string): RGB;
 export function oklab(r: number, g: number, b: number): [number, number, number];
+export function preKey(a: Asset): string;
 export function setPalette(list: RGB[]): void;
 export function nearest(r: number, g: number, b: number): number;
 export function medianCut(px: RGB[], n: number): RGB[];

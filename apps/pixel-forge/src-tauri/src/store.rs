@@ -34,6 +34,11 @@ CREATE TABLE IF NOT EXISTS sketches (
 );
 CREATE TABLE IF NOT EXISTS profiles (name TEXT PRIMARY KEY, data TEXT NOT NULL, updated_at INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY, at INTEGER NOT NULL, action TEXT NOT NULL, detail TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS ai_images (
+  sketch_id INTEGER PRIMARY KEY REFERENCES sketches(id) ON DELETE CASCADE,
+  png BLOB NOT NULL,
+  created_at INTEGER NOT NULL
+);
 ";
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
@@ -261,7 +266,35 @@ impl Project {
         if n == 0 {
             return Err("That sketch was removed".into());
         }
-        Ok(self.conn.last_insert_rowid())
+        let new_id = self.conn.last_insert_rowid();
+        self.conn
+            .execute("INSERT INTO ai_images(sketch_id, png, created_at) SELECT ?2, png, created_at FROM ai_images WHERE sketch_id = ?1", params![id, new_id])
+            .map_err(sql)?;
+        Ok(new_id)
+    }
+
+    // ------------------------------------------------------------ AI versions of sketches
+
+    /// The colored version an AI backend made of a sketch, kept so it is never paid for twice.
+    pub fn ai_image(&self, id: i64) -> Result<Option<Vec<u8>>> {
+        self.conn.query_row("SELECT png FROM ai_images WHERE sketch_id = ?1", [id], |r| r.get(0)).optional().map_err(sql)
+    }
+
+    pub fn set_ai_image(&self, id: i64, png: Option<&[u8]>) -> Result<()> {
+        match png {
+            Some(p) => {
+                if !p.starts_with(b"\x89PNG") {
+                    return Err("The AI image isn't a PNG".into());
+                }
+                self.conn
+                    .execute("INSERT OR REPLACE INTO ai_images(sketch_id, png, created_at) VALUES (?1, ?2, ?3)", params![id, p, now_ms()])
+                    .map_err(sql)?;
+            }
+            None => {
+                self.conn.execute("DELETE FROM ai_images WHERE sketch_id = ?1", [id]).map_err(sql)?;
+            }
+        }
+        Ok(())
     }
 
     pub fn delete_sketch(&self, id: i64) -> Result<()> {
@@ -358,5 +391,22 @@ pub mod tests {
         p.save_profile("Mouse style", &serde_json::json!({"outline": "selective"})).unwrap();
         assert_eq!(p.profiles().unwrap()[0].name, "Mouse style");
         assert!(p.activity(10).unwrap().iter().any(|e| e.action == "Removed sketch"));
+    }
+
+    #[test]
+    fn ai_images_follow_their_sketch() {
+        let dir = tempfile::tempdir().unwrap();
+        let p = Project::create(&dir.path().join("a.pixelforge"), "AI").unwrap();
+        let a = p.add_sketch("hero", "Characters", PNG_1X1, &serde_json::json!({})).unwrap();
+        assert_eq!(p.ai_image(a).unwrap(), None);
+        assert!(p.set_ai_image(a, Some(b"not a png")).is_err());
+        p.set_ai_image(a, Some(PNG_1X1)).unwrap();
+        assert_eq!(p.ai_image(a).unwrap().as_deref(), Some(PNG_1X1));
+        let c = p.duplicate_sketch(a, "hero_copy").unwrap();
+        assert_eq!(p.ai_image(c).unwrap().as_deref(), Some(PNG_1X1), "a copy keeps the paid-for image");
+        p.delete_sketch(a).unwrap();
+        assert_eq!(p.ai_image(a).unwrap(), None, "deleting a sketch removes its AI image");
+        p.set_ai_image(c, None).unwrap();
+        assert_eq!(p.ai_image(c).unwrap(), None);
     }
 }

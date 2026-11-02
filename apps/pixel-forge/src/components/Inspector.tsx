@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { open, save } from "@tauri-apps/plugin-dialog";
+import { ask, open, save } from "@tauri-apps/plugin-dialog";
 import { Badge, Button } from "@forge/ui";
 import * as E from "../engine/editor";
 import type { Display } from "../engine/editor";
@@ -11,7 +11,9 @@ import { api, baseName, errorText, IMAGE_EXT, mimeOf, plural, type Profile } fro
 import { meta } from "../project";
 import type { Notify } from "../App";
 import { useEditor } from "../useEditor";
-import { Check, Color, Hint, Pick, Range, Section } from "./controls";
+import { Check, Color, Hint, Pick, Range, Section, Seg } from "./controls";
+import { ai, colorWithAI, discardAI, QUALITIES, removeKey, saveKey, setAIPrefs } from "../ai";
+import type { Asset } from "../engine/core";
 import { SpriteCanvas } from "./SpriteView";
 
 export type Tab = "sketch" | "palette" | "convert" | "style" | "rig" | "train";
@@ -26,7 +28,7 @@ export function Inspector(props: { display: Display | null; notify: Notify; tab:
         {TABS.map(([k, l]) => <button key={k} role="tab" aria-selected={props.tab === k} onClick={() => props.onTab(k)}>{l}</button>)}
       </div>
       <div className="inspector-body" role="tabpanel">
-        {props.tab === "sketch" && <SketchPanel display={props.display} />}
+        {props.tab === "sketch" && <SketchPanel display={props.display} notify={props.notify} />}
         {props.tab === "palette" && <PalettePanel display={props.display} notify={props.notify} />}
         {props.tab === "convert" && <ConvertPanel />}
         {props.tab === "style" && <StylePanel notify={props.notify} />}
@@ -38,7 +40,7 @@ export function Inspector(props: { display: Display | null; notify: Notify; tab:
 }
 
 // ---------------------------------------------------------------- sketch
-function SketchPanel(props: { display: Display | null }) {
+function SketchPanel(props: { display: Display | null; notify: Notify }) {
   const a = E.cur();
   const thumb = useRef<HTMLCanvasElement>(null);
   useEffect(() => { if (a && thumb.current) E.drawThumb(a, thumb.current, 220, true); });
@@ -55,8 +57,9 @@ function SketchPanel(props: { display: Display | null }) {
           <canvas ref={thumb} style={{ cursor: E.ed.eraseMode ? "crosshair" : undefined }} aria-label="Cleaned sketch"
             onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); E.eraseAt(e.currentTarget, (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height); }} />
         </div>
-        <Hint>The sketch after background removal. This is what the pixel art is made from.</Hint>
+        <Hint>{a.useAI && a.aiSrc ? "The AI version after background removal. This is what the pixel art is made from." : "The sketch after background removal. This is what the pixel art is made from."}</Hint>
       </Section>
+      <AISection a={a} notify={props.notify} />
       <Section title="Fix areas">
         <div className="row-wrap">
           <Button aria-pressed={E.ed.eraseMode} variant={E.ed.eraseMode ? "primary" : undefined} onClick={() => E.toggle("eraseMode")}>Remove an area</Button>
@@ -84,6 +87,101 @@ function SketchPanel(props: { display: Display | null }) {
         </Section>
       )}
     </>
+  );
+}
+
+// ---------------------------------------------------------------- AI coloring (optional)
+function AISection(props: { a: Asset; notify: Notify }) {
+  const { a, notify } = props;
+  const p = ai.prefs;
+  const [key, setKey] = useState("");
+  const [prompt, setPrompt] = useState(a.aiPrompt ?? "");
+  useEffect(() => setPrompt(a.aiPrompt ?? ""), [a.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const shot = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const cv = shot.current, im = a.aiSrc;
+    if (!cv || !im) return;
+    const t = document.createElement("canvas");
+    t.width = im.width; t.height = im.height;
+    t.getContext("2d")!.putImageData(im, 0, 0);
+    const box = 160, sc = Math.min(box / im.width, box / im.height);
+    cv.width = box; cv.height = box;
+    const g = cv.getContext("2d")!;
+    g.clearRect(0, 0, box, box);
+    g.drawImage(t, (box - im.width * sc) / 2, (box - im.height * sc) / 2, im.width * sc, im.height * sc);
+  }, [a.aiSrc, a.aiVer]);
+  const busy = ai.busyId !== null;
+  const mine = ai.busyId === a.id;
+  const run = async () => {
+    E.setAIPrompt(prompt);
+    try { notify(await colorWithAI(a)); } catch (e) { notify(errorText(e), true); }
+  };
+  const addKey = async () => {
+    try { await saveKey(key); setKey(""); notify("API key saved in Windows Credential Manager on this PC"); } catch (e) { notify(errorText(e), true); }
+  };
+  const dropKey = async () => {
+    try { await removeKey(); notify("API key removed from this PC"); } catch (e) { notify(errorText(e), true); }
+  };
+  const discard = async () => {
+    const ok = await ask("Discard the AI version of this sketch? Making a new one is billed again.", { title: "Discard AI version", kind: "warning" }).catch(() => window.confirm("Discard the AI version?"));
+    if (!ok) return;
+    try { await discardAI(a); notify("AI version discarded"); } catch (e) { notify(errorText(e), true); }
+  };
+  return (
+    <Section title="AI coloring">
+      <label className="check">
+        <input type="checkbox" checked={p.on} onChange={(e) => void setAIPrefs({ on: e.target.checked }).catch((er) => notify(errorText(er), true))} />
+        Color sketches with OpenAI (optional)
+      </label>
+      {!p.on && <Hint>Off. When on, a sketch can be sent to OpenAI to be colored and cleaned up before it becomes pixel art. It uses your own OpenAI API key.</Hint>}
+      {p.on && <>
+        {ai.hasKey === false && (
+          <div className="ai-stack">
+            <label htmlFor="aiKey" className="muted small">OpenAI API key</label>
+            <div className="row-wrap">
+              <input id="aiKey" className="forge-input" type="password" autoComplete="off" spellCheck={false} placeholder="sk-…" value={key}
+                onChange={(e) => setKey(e.target.value)} onKeyDown={(e) => e.key === "Enter" && key.trim() && void addKey()} style={{ flex: 1, minWidth: 0 }} />
+              <Button onClick={() => void addKey()} disabled={!key.trim()}>Save key</Button>
+            </div>
+            <Hint>Kept in Windows Credential Manager on this PC, never in the project file. It's only ever sent to OpenAI.</Hint>
+          </div>
+        )}
+        {ai.hasKey && (
+          <div className="row-wrap ai-key">
+            <Badge>API key saved on this PC</Badge>
+            <Button variant="ghost" onClick={() => void dropKey()}>Remove key</Button>
+          </div>
+        )}
+        <div className="ai-stack">
+          <label htmlFor="aiPrompt" className="muted small">Colors and details</label>
+          <textarea id="aiPrompt" className="forge-input full" rows={3} maxLength={600} placeholder="Red hooded cloak, brown leather boots, pale skin, silver sword"
+            value={prompt} onChange={(e) => setPrompt(e.target.value)} onBlur={() => prompt !== (a.aiPrompt ?? "") && E.setAIPrompt(prompt)} />
+        </div>
+        <div className="ctl">
+          <label htmlFor="aiQuality">Quality</label>
+          <select id="aiQuality" className="forge-input" value={p.quality} onChange={(e) => void setAIPrefs({ quality: e.target.value as typeof p.quality })}>
+            {QUALITIES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
+        </div>
+        <div className="ctl">
+          <label htmlFor="aiModel">Model</label>
+          <input id="aiModel" className="forge-input" key={p.model} defaultValue={p.model} spellCheck={false}
+            onBlur={(e) => e.target.value.trim() !== p.model && void setAIPrefs({ model: e.target.value })} />
+        </div>
+        <Button variant="primary" className="ai-run" disabled={busy || !ai.hasKey} onClick={() => void run()}>
+          {mine ? "Coloring… (up to a minute)" : busy ? "Coloring another sketch…" : a.aiSrc ? "Color again with AI" : "Color this sketch with AI"}
+        </Button>
+        <Hint>Your sketch and this prompt are sent to OpenAI. Each run is billed to your OpenAI account, and Low quality costs the least. The result is kept with the sketch, so it isn't paid for twice.</Hint>
+      </>}
+      {a.aiSrc && (
+        <div className="ai-result">
+          <div className="thumb-box checker"><canvas ref={shot} className="ai-shot" aria-label="AI version of the sketch" /></div>
+          <Seg label="Make the pixel art from" value={a.useAI ? "ai" : "sketch"} onChange={(v) => E.chooseAI(v === "ai")}
+            options={[["ai", "AI version"], ["sketch", "My sketch"]]} />
+          <Button variant="ghost" onClick={() => void discard()}>Discard AI version</Button>
+        </div>
+      )}
+    </Section>
   );
 }
 
