@@ -151,6 +151,15 @@ describe("AI coloring", async () => {
     expect(Ed.buildAIPrompt()).toContain("Use only these colors: #ff0000, #0000ff.");
     C.S.lockPalette = false;
   });
+  it("writes a tag-style prompt for local checkpoints", () => {
+    C.S.light = "t";
+    const { positive, negative } = Ed.buildLocalPrompt("green tunic");
+    expect(positive.startsWith("green tunic, 2d game character")).toBe(true);
+    expect(positive).toContain("light from the top");
+    expect(positive).toContain("plain white background");
+    expect(negative).toContain("photo");
+    expect(Ed.buildLocalPrompt().positive.startsWith("2d game character")).toBe(true);
+  });
   it("picks the image shape closest to the sketch", () => {
     const at = (w: number, h: number) => Ed.aiSizeFor({ src: new ImageData(w, h) } as never);
     expect([at(100, 180), at(100, 100), at(200, 100)]).toEqual(["1024x1536", "1024x1024", "1536x1024"]);

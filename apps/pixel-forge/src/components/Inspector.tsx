@@ -12,7 +12,7 @@ import { meta } from "../project";
 import type { Notify } from "../App";
 import { useEditor } from "../useEditor";
 import { Check, Color, Hint, Pick, Range, Section, Seg } from "./controls";
-import { ai, colorWithAI, discardAI, QUALITIES, removeKey, saveKey, setAIPrefs } from "../ai";
+import { ai, colorWithAI, connectComfy, DEFAULT_COMFY_URL, discardAI, QUALITIES, readyProblem, removeKey, saveKey, setAIPrefs, SIZES as AI_SIZES, stopComfy } from "../ai";
 import type { Asset } from "../engine/core";
 import { SpriteCanvas } from "./SpriteView";
 
@@ -94,7 +94,6 @@ function SketchPanel(props: { display: Display | null; notify: Notify }) {
 function AISection(props: { a: Asset; notify: Notify }) {
   const { a, notify } = props;
   const p = ai.prefs;
-  const [key, setKey] = useState("");
   const [prompt, setPrompt] = useState(a.aiPrompt ?? "");
   useEffect(() => setPrompt(a.aiPrompt ?? ""), [a.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const shot = useRef<HTMLCanvasElement>(null);
@@ -112,66 +111,48 @@ function AISection(props: { a: Asset; notify: Notify }) {
   }, [a.aiSrc, a.aiVer]);
   const busy = ai.busyId !== null;
   const mine = ai.busyId === a.id;
+  const missing = readyProblem();
+  const fail = (e: unknown) => notify(errorText(e), true);
   const run = async () => {
     E.setAIPrompt(prompt);
-    try { notify(await colorWithAI(a)); } catch (e) { notify(errorText(e), true); }
-  };
-  const addKey = async () => {
-    try { await saveKey(key); setKey(""); notify("API key saved in Windows Credential Manager on this PC"); } catch (e) { notify(errorText(e), true); }
-  };
-  const dropKey = async () => {
-    try { await removeKey(); notify("API key removed from this PC"); } catch (e) { notify(errorText(e), true); }
+    try { notify(await colorWithAI(a)); } catch (e) { fail(e); }
   };
   const discard = async () => {
-    const ok = await ask("Discard the AI version of this sketch? Making a new one is billed again.", { title: "Discard AI version", kind: "warning" }).catch(() => window.confirm("Discard the AI version?"));
+    const again = p.backend === "openai" ? " Making a new one is billed again." : "";
+    const ok = await ask(`Discard the AI version of this sketch?${again}`, { title: "Discard AI version", kind: "warning" }).catch(() => window.confirm("Discard the AI version?"));
     if (!ok) return;
-    try { await discardAI(a); notify("AI version discarded"); } catch (e) { notify(errorText(e), true); }
+    try { await discardAI(a); notify("AI version discarded"); } catch (e) { fail(e); }
   };
   return (
     <Section title="AI coloring">
       <label className="check">
-        <input type="checkbox" checked={p.on} onChange={(e) => void setAIPrefs({ on: e.target.checked }).catch((er) => notify(errorText(er), true))} />
-        Color sketches with OpenAI (optional)
+        <input type="checkbox" checked={p.on} onChange={(e) => void setAIPrefs({ on: e.target.checked }).catch(fail)} />
+        Color sketches with AI (optional)
       </label>
-      {!p.on && <Hint>Off. When on, a sketch can be sent to OpenAI to be colored and cleaned up before it becomes pixel art. It uses your own OpenAI API key.</Hint>}
+      {!p.on && <Hint>Off. When on, a sketch can be colored and cleaned up by AI before it becomes pixel art, either by OpenAI with your own key or by ComfyUI running on your PC.</Hint>}
       {p.on && <>
-        {ai.hasKey === false && (
-          <div className="ai-stack">
-            <label htmlFor="aiKey" className="muted small">OpenAI API key</label>
-            <div className="row-wrap">
-              <input id="aiKey" className="forge-input" type="password" autoComplete="off" spellCheck={false} placeholder="sk-…" value={key}
-                onChange={(e) => setKey(e.target.value)} onKeyDown={(e) => e.key === "Enter" && key.trim() && void addKey()} style={{ flex: 1, minWidth: 0 }} />
-              <Button onClick={() => void addKey()} disabled={!key.trim()}>Save key</Button>
-            </div>
-            <Hint>Kept in Windows Credential Manager on this PC, never in the project file. It's only ever sent to OpenAI.</Hint>
-          </div>
-        )}
-        {ai.hasKey && (
-          <div className="row-wrap ai-key">
-            <Badge>API key saved on this PC</Badge>
-            <Button variant="ghost" onClick={() => void dropKey()}>Remove key</Button>
-          </div>
-        )}
+        <div className="ai-stack">
+          <span className="muted small">Run it on</span>
+          <Seg label="Run AI coloring on" value={p.backend} onChange={(v) => void setAIPrefs({ backend: v }).catch(fail)}
+            options={[["openai", "OpenAI (online)", "Your OpenAI account, billed per image"], ["comfy", "ComfyUI (this PC)", "A ComfyUI server you run yourself, free"]]} />
+        </div>
+        {p.backend === "openai" ? <OpenAIOptions notify={notify} /> : <ComfyOptions notify={notify} />}
         <div className="ai-stack">
           <label htmlFor="aiPrompt" className="muted small">Colors and details</label>
           <textarea id="aiPrompt" className="forge-input full" rows={3} maxLength={600} placeholder="Red hooded cloak, brown leather boots, pale skin, silver sword"
             value={prompt} onChange={(e) => setPrompt(e.target.value)} onBlur={() => prompt !== (a.aiPrompt ?? "") && E.setAIPrompt(prompt)} />
         </div>
-        <div className="ctl">
-          <label htmlFor="aiQuality">Quality</label>
-          <select id="aiQuality" className="forge-input" value={p.quality} onChange={(e) => void setAIPrefs({ quality: e.target.value as typeof p.quality })}>
-            {QUALITIES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-          </select>
+        <div className="row-wrap ai-run-row">
+          <Button variant="primary" className="ai-run" disabled={busy || !!missing} title={missing || undefined} onClick={() => void run()}>
+            {mine ? (p.backend === "comfy" ? "Coloring… (can take minutes)" : "Coloring… (up to a minute)") : busy ? "Coloring another sketch…" : a.aiSrc ? "Color again with AI" : "Color this sketch with AI"}
+          </Button>
+          {mine && p.backend === "comfy" && <Button onClick={() => void stopComfy().catch(fail)}>Stop</Button>}
         </div>
-        <div className="ctl">
-          <label htmlFor="aiModel">Model</label>
-          <input id="aiModel" className="forge-input" key={p.model} defaultValue={p.model} spellCheck={false}
-            onBlur={(e) => e.target.value.trim() !== p.model && void setAIPrefs({ model: e.target.value })} />
-        </div>
-        <Button variant="primary" className="ai-run" disabled={busy || !ai.hasKey} onClick={() => void run()}>
-          {mine ? "Coloring… (up to a minute)" : busy ? "Coloring another sketch…" : a.aiSrc ? "Color again with AI" : "Color this sketch with AI"}
-        </Button>
-        <Hint>Your sketch and this prompt are sent to OpenAI. Each run is billed to your OpenAI account, and Low quality costs the least. The result is kept with the sketch, so it isn't paid for twice.</Hint>
+        {missing && !busy && <Hint>{missing}.</Hint>}
+        <Hint>{p.backend === "openai"
+          ? "Your sketch and this prompt are sent to OpenAI. Each run is billed to your OpenAI account, and Low quality costs the least."
+          : "Everything stays with your ComfyUI, so nothing is uploaded or billed. Its copy of each image also lands in ComfyUI's output folder."}{" "}
+          The result is kept with the sketch.</Hint>
       </>}
       {a.aiSrc && (
         <div className="ai-result">
@@ -183,6 +164,124 @@ function AISection(props: { a: Asset; notify: Notify }) {
       )}
     </Section>
   );
+}
+
+function OpenAIOptions(props: { notify: Notify }) {
+  const { notify } = props;
+  const p = ai.prefs;
+  const [key, setKey] = useState("");
+  const addKey = async () => {
+    try { await saveKey(key); setKey(""); notify("API key saved in Windows Credential Manager on this PC"); } catch (e) { notify(errorText(e), true); }
+  };
+  const dropKey = async () => {
+    try { await removeKey(); notify("API key removed from this PC"); } catch (e) { notify(errorText(e), true); }
+  };
+  return <>
+    {ai.hasKey === false && (
+      <div className="ai-stack">
+        <label htmlFor="aiKey" className="muted small">OpenAI API key</label>
+        <div className="row-wrap">
+          <input id="aiKey" className="forge-input" type="password" autoComplete="off" spellCheck={false} placeholder="sk-…" value={key}
+            onChange={(e) => setKey(e.target.value)} onKeyDown={(e) => e.key === "Enter" && key.trim() && void addKey()} style={{ flex: 1, minWidth: 0 }} />
+          <Button onClick={() => void addKey()} disabled={!key.trim()}>Save key</Button>
+        </div>
+        <Hint>Kept in Windows Credential Manager on this PC, never in the project file. It's only ever sent to OpenAI.</Hint>
+      </div>
+    )}
+    {ai.hasKey && (
+      <div className="row-wrap ai-key">
+        <Badge>API key saved on this PC</Badge>
+        <Button variant="ghost" onClick={() => void dropKey()}>Remove key</Button>
+      </div>
+    )}
+    <div className="ctl">
+      <label htmlFor="aiQuality">Quality</label>
+      <select id="aiQuality" className="forge-input" value={p.quality} onChange={(e) => void setAIPrefs({ quality: e.target.value as typeof p.quality })}>
+        {QUALITIES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+      </select>
+    </div>
+    <div className="ctl">
+      <label htmlFor="aiModel">Model</label>
+      <input id="aiModel" className="forge-input" key={p.model} defaultValue={p.model} spellCheck={false}
+        onBlur={(e) => e.target.value.trim() !== p.model && void setAIPrefs({ model: e.target.value })} />
+    </div>
+  </>;
+}
+
+function ComfyOptions(props: { notify: Notify }) {
+  const { notify } = props;
+  const p = ai.prefs;
+  const c = ai.comfy;
+  const [connecting, setConnecting] = useState(false);
+  const fail = (e: unknown) => notify(errorText(e), true);
+  const connect = async () => {
+    setConnecting(true);
+    try { notify(await connectComfy()); } catch (e) { fail(e); }
+    setConnecting(false);
+  };
+  const pickWorkflow = async () => {
+    const path = await open({ multiple: false, title: "ComfyUI workflow (API format)", filters: [{ name: "ComfyUI workflow", extensions: ["json"] }] });
+    if (typeof path !== "string") return;
+    try {
+      const wf: unknown = JSON.parse(await api.readText(path));
+      if (!wf || typeof wf !== "object" || Array.isArray(wf)) throw new Error("That file isn't a ComfyUI workflow");
+      if ("nodes" in wf) throw new Error("That's the editor format. In ComfyUI use \"Save (API format)\" instead");
+      if (!JSON.stringify(wf).includes("%SKETCH%")) throw new Error("Your workflow needs %SKETCH% where the image goes (the LoadImage node's image)");
+      await setAIPrefs({ workflow: wf, workflowName: baseName(path) });
+      notify(`Using ${baseName(path)}`);
+    } catch (e) { fail(e); }
+  };
+  const cps = c.checkpoints.includes(p.checkpoint) || !p.checkpoint ? c.checkpoints : [p.checkpoint, ...c.checkpoints];
+  return <>
+    <div className="ai-stack">
+      <label htmlFor="comfyUrl" className="muted small">ComfyUI address</label>
+      <div className="row-wrap">
+        <input id="comfyUrl" className="forge-input" key={p.comfyUrl} defaultValue={p.comfyUrl} spellCheck={false} placeholder={DEFAULT_COMFY_URL} style={{ flex: 1, minWidth: 0 }}
+          onBlur={(e) => e.target.value.trim() !== p.comfyUrl && void setAIPrefs({ comfyUrl: e.target.value })}
+          onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()} />
+        <Button onClick={() => void connect()} disabled={connecting}>{connecting ? "Connecting…" : c.checked && !c.error ? "Refresh" : "Connect"}</Button>
+      </div>
+      {c.checked && !c.error && <span className="muted small">Connected · {c.checkpoints.length} checkpoint{c.checkpoints.length === 1 ? "" : "s"}</span>}
+      {!c.checked && <Hint>Start ComfyUI first. On AMD cards like the RX 5700 XT, start it with <span className="mono">--directml</span>.</Hint>}
+    </div>
+    {!p.workflow && <>
+      <div className="ctl">
+        <label htmlFor="comfyCkpt">Checkpoint</label>
+        <select id="comfyCkpt" className="forge-input" value={p.checkpoint} disabled={!cps.length} onChange={(e) => void setAIPrefs({ checkpoint: e.target.value })}>
+          {!cps.length && <option value="">Connect to list them</option>}
+          {cps.map((k) => <option key={k} value={k}>{k}</option>)}
+        </select>
+      </div>
+      <div className="ctl range" title="Low keeps your drawing closely; high lets the model redraw more">
+        <label htmlFor="comfyDenoise">Change</label>
+        <input id="comfyDenoise" type="range" min={20} max={90} step={5} value={Math.round(p.denoise * 100)} onChange={(e) => void setAIPrefs({ denoise: +e.target.value / 100 })} />
+        <output htmlFor="comfyDenoise">{Math.round(p.denoise * 100)}%</output>
+      </div>
+      <div className="ctl">
+        <label htmlFor="comfySteps">Steps</label>
+        <input id="comfySteps" className="forge-input" type="number" min={4} max={80} key={p.steps} defaultValue={p.steps}
+          onBlur={(e) => +e.target.value !== p.steps && void setAIPrefs({ steps: +e.target.value })} />
+      </div>
+    </>}
+    <div className="ctl">
+      <label htmlFor="comfySize">Image size</label>
+      <select id="comfySize" className="forge-input" value={p.size} onChange={(e) => void setAIPrefs({ size: +e.target.value })}>
+        {AI_SIZES.map(([n, l]) => <option key={n} value={n}>{l}</option>)}
+      </select>
+    </div>
+    <div className="ai-stack">
+      <span className="muted small">Workflow</span>
+      <div className="row-wrap ai-wf">
+        <span className="small">{p.workflow ? p.workflowName : "Built-in (image to image)"}</span>
+        {p.workflow
+          ? <Button variant="ghost" onClick={() => void setAIPrefs({ workflow: null, workflowName: "" })}>Use built-in</Button>
+          : <Button variant="ghost" onClick={() => void pickWorkflow()}>Use my own…</Button>}
+      </div>
+    </div>
+    {p.workflow
+      ? <Hint>Your workflow runs as saved. Pixel Forge fills in %SKETCH%, %PROMPT%, %NEGATIVE%, %CHECKPOINT%, %SEED%, %STEPS% and %DENOISE% wherever you put them.</Hint>
+      : <Hint>Change sets how far the model may move from your drawing. Around 50% keeps the pose and shapes.</Hint>}
+  </>;
 }
 
 // ---------------------------------------------------------------- palette

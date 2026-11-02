@@ -186,13 +186,21 @@ until you turn it on and add your own key.
   clips, GameMaker strips, Spine skeletons, PNG sequences and sprite sheet JSON (Phaser,
   Defold, PixiJS), plus the palette, the style profile and a README of import steps.
   Asset Forge can index the exported folder.
-- **AI coloring (optional).** In the Sketch tab, turn on "Color sketches with OpenAI" and add
-  your own OpenAI API key. It is kept in Windows Credential Manager, never in the project, and
-  only sent to OpenAI. "Color this sketch with AI" sends the sketch and your prompt to OpenAI's
-  image edit API (`gpt-image-1` by default) and is billed to your account. The colored result is
-  kept in the project with the sketch, and you can switch between it and your own sketch at
-  any time. For trying the panel without paying, a development build started with
-  `PIXELFORGE_AI_MOCK=1` returns the sketch itself instead of calling OpenAI.
+- **AI coloring (optional).** In the Sketch tab, turn on "Color sketches with AI" and choose
+  where it runs. The colored result is kept in the project with the sketch, and you can switch
+  between it and your own sketch at any time.
+  - **OpenAI (online).** Add your own OpenAI API key. It is kept in Windows Credential Manager,
+    never in the project, and only sent to OpenAI. Each run sends the sketch and your prompt to
+    OpenAI's image edit API (`gpt-image-1` by default) and is billed to your account.
+  - **ComfyUI (this PC).** Start [ComfyUI](https://github.com/comfyanonymous/ComfyUI) yourself
+    (on AMD cards like the RX 5700 XT, `python main.py --directml`), put a Stable Diffusion
+    checkpoint in its `models/checkpoints` folder, then press Connect. The built-in workflow is
+    image to image with that checkpoint; "Change" sets how far it may move from your drawing.
+    You can use your own workflow instead: save it from ComfyUI with "Save (API format)" and put
+    `%SKETCH%` where the image goes (Pixel Forge also fills `%PROMPT%`, `%NEGATIVE%`,
+    `%CHECKPOINT%`, `%SEED%`, `%STEPS%` and `%DENOISE%`). Nothing is uploaded or billed.
+  - For trying the panel without either, a development build started with
+    `PIXELFORGE_AI_MOCK=1` returns the sketch itself instead.
 
 ## Projects folder
 
