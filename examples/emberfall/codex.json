@@ -1,0 +1,1060 @@
+{
+ "formatVersion": 1,
+ "sourceApp": "forge-core",
+ "sourceAppVersion": "0.1.0",
+ "createdAt": "2026-11-02T00:00:00Z",
+ "project": {
+  "id": "emberfall-example",
+  "name": "Emberfall (example)",
+  "createdAt": 0
+ },
+ "entities": [
+  {
+   "id": "emberfall-lore-ashen-accord",
+   "kind": "lore",
+   "name": "The Ashen Accord",
+   "entityType": "Faction",
+   "status": "Final",
+   "author": "Example",
+   "summary": "Wardens sworn to keep the old fire sealed beneath Cinder Hollow.",
+   "body": "The Accord was founded the morning after **the Night the Sky Burned**. Its wardens patrol the edge of Mosslight Woods and keep the seals under Cinder Hollow intact.\n\nThey are few now, and most of them are tired.",
+   "fields": {
+    "canonStatus": "Canon",
+    "importance": 5
+   },
+   "tags": [
+    "faction",
+    "wardens"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-lore-sky-burned",
+     "relation": "connectedEntries"
+    },
+    {
+     "toId": "emberfall-lore-lysa-thorne",
+     "relation": "relatedNpcs"
+    },
+    {
+     "toId": "emberfall-zone-cinder-hollow",
+     "relation": "relatedZones"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-lore-sky-burned",
+   "kind": "lore",
+   "name": "The Night the Sky Burned",
+   "entityType": "Event",
+   "status": "Final",
+   "author": "Example",
+   "summary": "Two hundred years ago a falling star cracked open the hollow and woke the ember.",
+   "body": "Every child in Emberfall knows the story: the star fell, the forest burned for a week, and the Hollow King crawled out of the crater wearing a crown of cinders.",
+   "fields": {
+    "canonStatus": "Canon",
+    "importance": 4
+   },
+   "tags": [
+    "history"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-zone-cinder-hollow",
+     "relation": "relatedZones"
+    },
+    {
+     "toId": "emberfall-zone-sunken-spire",
+     "relation": "relatedZones"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-lore-lysa-thorne",
+   "kind": "lore",
+   "name": "Warden Lysa Thorne",
+   "entityType": "Character",
+   "status": "Final",
+   "author": "Example",
+   "summary": "The last active warden of the Ashen Accord, and the player's mentor.",
+   "body": "Gruff, practical, and short on patience. She gives the player their first sword and expects it back in one piece.",
+   "fields": {
+    "canonStatus": "Canon",
+    "importance": 4
+   },
+   "tags": [
+    "npc",
+    "mentor"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-lore-ashen-accord",
+     "relation": "connectedEntries"
+    },
+    {
+     "toId": "emberfall-quest-spark-in-the-woods",
+     "relation": "relatedQuests"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-lore-keeper-bram",
+   "kind": "lore",
+   "name": "Keeper Bram",
+   "entityType": "Character",
+   "status": "Draft",
+   "author": "Example",
+   "summary": "Alchemist and shopkeeper at the edge of the woods. Pays well for slime gel.",
+   "body": "Bram sells potions and buys monster parts. His prices are fair; his jokes are not.",
+   "fields": {
+    "canonStatus": "Canon",
+    "importance": 2
+   },
+   "tags": [
+    "npc",
+    "shop"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-quest-gel-for-the-alchemist",
+     "relation": "relatedQuests"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-skill-fire-bolt",
+   "kind": "skill",
+   "name": "Fire Bolt",
+   "entityType": "Active",
+   "status": "Final",
+   "author": "Example",
+   "summary": "Hurls a bolt of ember that sets the target alight.",
+   "body": "",
+   "fields": {
+    "cost": "12 mana",
+    "cooldown": 3,
+    "scaling": "100% spell power",
+    "damageFormula": "18 + 1.2 × spell power",
+    "unlockMethod": "Level 2",
+    "animationNotes": "Cast pose, 6 frames. Bolt is a 16 px sprite with a 4 frame trail."
+   },
+   "tags": [
+    "fire",
+    "ranged"
+   ],
+   "links": []
+  },
+  {
+   "id": "emberfall-skill-ember-nova",
+   "kind": "skill",
+   "name": "Ember Nova",
+   "entityType": "Ultimate",
+   "status": "In Review",
+   "author": "Example",
+   "summary": "A ring of fire bursts out from the caster.",
+   "body": "",
+   "fields": {
+    "cost": "40 mana",
+    "cooldown": 45,
+    "scaling": "220% spell power",
+    "damageFormula": "60 + 2.2 × spell power",
+    "unlockMethod": "Defeat the Cinder Golem",
+    "animationNotes": "Expanding ring, 8 frames, screen shake on frame 3."
+   },
+   "tags": [
+    "fire",
+    "aoe"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-skill-fire-bolt",
+     "relation": "prerequisiteSkills"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-skill-shield-bash",
+   "kind": "skill",
+   "name": "Shield Bash",
+   "entityType": "Active",
+   "status": "Final",
+   "author": "Example",
+   "summary": "Stuns an enemy for one second.",
+   "body": "",
+   "fields": {
+    "cost": "8 stamina",
+    "cooldown": 6,
+    "scaling": "50% attack",
+    "damageFormula": "6 + 0.5 × attack",
+    "unlockMethod": "Start"
+   },
+   "tags": [
+    "melee",
+    "stun"
+   ],
+   "links": []
+  },
+  {
+   "id": "emberfall-skill-second-wind",
+   "kind": "skill",
+   "name": "Second Wind",
+   "entityType": "Passive",
+   "status": "Draft",
+   "author": "Example",
+   "summary": "Below 25% health, heal 20% over five seconds once per fight.",
+   "body": "",
+   "fields": {
+    "cost": "None",
+    "cooldown": 90,
+    "unlockMethod": "Level 6"
+   },
+   "tags": [
+    "defensive"
+   ],
+   "links": []
+  },
+  {
+   "id": "emberfall-skill-ember-breath",
+   "kind": "skill",
+   "name": "Ember Breath",
+   "entityType": "Active",
+   "status": "Final",
+   "author": "Example",
+   "summary": "A cone of sparks used by fire creatures.",
+   "body": "",
+   "fields": {
+    "cost": "None",
+    "cooldown": 5,
+    "damageFormula": "12 fire damage per second for 3 s"
+   },
+   "tags": [
+    "fire",
+    "enemy"
+   ],
+   "links": []
+  },
+  {
+   "id": "emberfall-item-rusty-sword",
+   "kind": "item",
+   "name": "Rusty Sword",
+   "entityType": "Weapon",
+   "status": "Final",
+   "author": "Example",
+   "summary": "The sword Lysa lends you. Better than nothing.",
+   "body": "",
+   "fields": {
+    "rarity": "Common",
+    "stackSize": 1,
+    "buyPrice": 0,
+    "sellPrice": 5,
+    "effects": [
+     "+4 attack"
+    ]
+   },
+   "tags": [
+    "weapon",
+    "starter"
+   ],
+   "links": []
+  },
+  {
+   "id": "emberfall-item-ember-blade",
+   "kind": "item",
+   "name": "Ember Blade",
+   "entityType": "Weapon",
+   "status": "In Review",
+   "author": "Example",
+   "summary": "A blade forged around an ember core. Burns on hit.",
+   "body": "",
+   "fields": {
+    "rarity": "Rare",
+    "stackSize": 1,
+    "buyPrice": 450,
+    "sellPrice": 110,
+    "effects": [
+     "+14 attack",
+     "Burn 4 damage per second for 3 s"
+    ]
+   },
+   "tags": [
+    "weapon",
+    "fire"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-skill-fire-bolt",
+     "relation": "relatedSkills"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-item-oak-shield",
+   "kind": "item",
+   "name": "Oak Shield",
+   "entityType": "Armor",
+   "status": "Final",
+   "author": "Example",
+   "summary": "A sturdy round shield.",
+   "body": "",
+   "fields": {
+    "rarity": "Common",
+    "stackSize": 1,
+    "buyPrice": 60,
+    "sellPrice": 15,
+    "effects": [
+     "+6 armor"
+    ]
+   },
+   "tags": [
+    "armor"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-skill-shield-bash",
+     "relation": "relatedSkills"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-item-health-potion",
+   "kind": "item",
+   "name": "Health Potion",
+   "entityType": "Consumable",
+   "status": "Final",
+   "author": "Example",
+   "summary": "Restores 50 health.",
+   "body": "",
+   "fields": {
+    "rarity": "Common",
+    "stackSize": 10,
+    "buyPrice": 25,
+    "sellPrice": 6,
+    "effects": [
+     "Heal 50"
+    ]
+   },
+   "tags": [
+    "potion"
+   ],
+   "links": []
+  },
+  {
+   "id": "emberfall-item-mana-tonic",
+   "kind": "item",
+   "name": "Mana Tonic",
+   "entityType": "Consumable",
+   "status": "Final",
+   "author": "Example",
+   "summary": "Restores 30 mana.",
+   "body": "",
+   "fields": {
+    "rarity": "Uncommon",
+    "stackSize": 10,
+    "buyPrice": 40,
+    "sellPrice": 10,
+    "effects": [
+     "Restore 30 mana"
+    ]
+   },
+   "tags": [
+    "potion"
+   ],
+   "links": []
+  },
+  {
+   "id": "emberfall-item-slime-gel",
+   "kind": "item",
+   "name": "Slime Gel",
+   "entityType": "Material",
+   "status": "Final",
+   "author": "Example",
+   "summary": "Sticky, faintly glowing. Bram buys it for potions.",
+   "body": "",
+   "fields": {
+    "rarity": "Common",
+    "stackSize": 50,
+    "buyPrice": 4,
+    "sellPrice": 2
+   },
+   "tags": [
+    "material",
+    "crafting"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-item-health-potion",
+     "relation": "craftingUses"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-item-bat-wing",
+   "kind": "item",
+   "name": "Bat Wing",
+   "entityType": "Material",
+   "status": "Draft",
+   "author": "Example",
+   "summary": "Leathery and light.",
+   "body": "",
+   "fields": {
+    "rarity": "Common",
+    "stackSize": 50,
+    "buyPrice": 6,
+    "sellPrice": 3
+   },
+   "tags": [
+    "material"
+   ],
+   "links": []
+  },
+  {
+   "id": "emberfall-item-ember-core",
+   "kind": "item",
+   "name": "Ember Core",
+   "entityType": "Component",
+   "status": "Final",
+   "author": "Example",
+   "summary": "Still warm. The heart of an ember creature.",
+   "body": "",
+   "fields": {
+    "rarity": "Rare",
+    "stackSize": 5,
+    "buyPrice": 200,
+    "sellPrice": 60,
+    "effects": [
+     "Crafting: fire weapons"
+    ]
+   },
+   "tags": [
+    "material",
+    "fire"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-item-ember-blade",
+     "relation": "craftingUses"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-item-hollow-crown",
+   "kind": "item",
+   "name": "The Hollow Crown",
+   "entityType": "Quest Item",
+   "status": "Idea",
+   "author": "Example",
+   "summary": "A crown of cooled cinders, taken from the Hollow King.",
+   "body": "",
+   "fields": {
+    "rarity": "Legendary",
+    "stackSize": 1,
+    "buyPrice": 0,
+    "sellPrice": 0
+   },
+   "tags": [
+    "quest",
+    "boss"
+   ],
+   "links": []
+  },
+  {
+   "id": "emberfall-zone-mosslight-woods",
+   "kind": "zone",
+   "name": "Mosslight Woods",
+   "entityType": "Forest",
+   "status": "Final",
+   "author": "Example",
+   "summary": "A glowing forest where the game starts.",
+   "body": "Soft light, mossy ruins and slimes everywhere. The tutorial and first quests happen here.",
+   "fields": {
+    "biome": "Temperate forest",
+    "levelMin": 1,
+    "levelMax": 5,
+    "climate": "Mild, misty mornings",
+    "resources": [
+     "Glowcap mushrooms",
+     "Oak wood"
+    ],
+    "dangers": [
+     "Bramble wolves at night"
+    ],
+    "mapNotes": "Village in the south-west, the Hollow's mouth in the north-east."
+   },
+   "tags": [
+    "starter"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-lore-ashen-accord",
+     "relation": "factionsPresent"
+    },
+    {
+     "toId": "emberfall-lore-lysa-thorne",
+     "relation": "npcLinks"
+    },
+    {
+     "toId": "emberfall-lore-keeper-bram",
+     "relation": "npcLinks"
+    },
+    {
+     "toId": "emberfall-mob-moss-slime",
+     "relation": "mobLinks"
+    },
+    {
+     "toId": "emberfall-mob-bramble-wolf",
+     "relation": "mobLinks"
+    },
+    {
+     "toId": "emberfall-quest-spark-in-the-woods",
+     "relation": "questLinks"
+    },
+    {
+     "toId": "emberfall-quest-gel-for-the-alchemist",
+     "relation": "questLinks"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-zone-cinder-hollow",
+   "kind": "zone",
+   "name": "Cinder Hollow",
+   "entityType": "Cave",
+   "status": "Final",
+   "author": "Example",
+   "summary": "A smouldering cave under the crater.",
+   "body": "Lava cracks light the walls. The ember creatures nest here.",
+   "fields": {
+    "biome": "Volcanic cave",
+    "levelMin": 5,
+    "levelMax": 10,
+    "climate": "Hot and dry",
+    "resources": [
+     "Ember cores",
+     "Obsidian"
+    ],
+    "dangers": [
+     "Lava pools",
+     "Falling rocks"
+    ]
+   },
+   "tags": [
+    "fire"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-mob-cave-bat",
+     "relation": "mobLinks"
+    },
+    {
+     "toId": "emberfall-mob-ember-slime",
+     "relation": "mobLinks"
+    },
+    {
+     "toId": "emberfall-mob-cinder-golem",
+     "relation": "mobLinks"
+    },
+    {
+     "toId": "emberfall-quest-into-cinder-hollow",
+     "relation": "questLinks"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-zone-sunken-spire",
+   "kind": "zone",
+   "name": "The Sunken Spire",
+   "entityType": "Dungeon",
+   "status": "Draft",
+   "author": "Example",
+   "summary": "The ruined tower where the Hollow King waits.",
+   "body": "",
+   "fields": {
+    "biome": "Ruins",
+    "levelMin": 10,
+    "levelMax": 14,
+    "climate": "Cold and dark",
+    "dangers": [
+     "Collapsing floors"
+    ]
+   },
+   "tags": [
+    "endgame"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-mob-ashen-skeleton",
+     "relation": "mobLinks"
+    },
+    {
+     "toId": "emberfall-mob-hollow-king",
+     "relation": "mobLinks"
+    },
+    {
+     "toId": "emberfall-quest-the-hollow-crown",
+     "relation": "questLinks"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-mob-moss-slime",
+   "kind": "mob",
+   "name": "Moss Slime",
+   "entityType": "Beast",
+   "status": "Final",
+   "author": "Example",
+   "summary": "A slow, harmless blob. The first thing every player fights.",
+   "body": "",
+   "fields": {
+    "rarity": "Common",
+    "health": 30,
+    "damage": 4,
+    "armor": 0,
+    "aggroRadius": 4,
+    "weaknesses": [
+     "Fire"
+    ],
+    "aiBehavior": "Wanders. Hops toward the player when hit."
+   },
+   "tags": [
+    "slime"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-zone-mosslight-woods",
+     "relation": "spawnLocations"
+    },
+    {
+     "toId": "emberfall-item-slime-gel",
+     "relation": "lootTable"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-mob-bramble-wolf",
+   "kind": "mob",
+   "name": "Bramble Wolf",
+   "entityType": "Beast",
+   "status": "Final",
+   "author": "Example",
+   "summary": "Hunts in pairs at night.",
+   "body": "",
+   "fields": {
+    "rarity": "Uncommon",
+    "health": 55,
+    "damage": 9,
+    "armor": 2,
+    "aggroRadius": 8,
+    "aiBehavior": "Circles the player, then lunges."
+   },
+   "tags": [
+    "wolf",
+    "night"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-zone-mosslight-woods",
+     "relation": "spawnLocations"
+    },
+    {
+     "toId": "emberfall-item-health-potion",
+     "relation": "lootTable"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-mob-cave-bat",
+   "kind": "mob",
+   "name": "Cave Bat",
+   "entityType": "Beast",
+   "status": "Final",
+   "author": "Example",
+   "summary": "Fast and fragile. Swoops from the ceiling.",
+   "body": "",
+   "fields": {
+    "rarity": "Common",
+    "health": 22,
+    "damage": 6,
+    "armor": 0,
+    "aggroRadius": 10,
+    "aiBehavior": "Swoops in, bites, flies back up."
+   },
+   "tags": [
+    "flying"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-zone-cinder-hollow",
+     "relation": "spawnLocations"
+    },
+    {
+     "toId": "emberfall-item-bat-wing",
+     "relation": "lootTable"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-mob-ember-slime",
+   "kind": "mob",
+   "name": "Ember Slime",
+   "entityType": "Elemental",
+   "status": "Final",
+   "author": "Example",
+   "summary": "A slime that swallowed an ember. Leaves burning trails.",
+   "body": "",
+   "fields": {
+    "rarity": "Uncommon",
+    "health": 70,
+    "damage": 11,
+    "armor": 4,
+    "aggroRadius": 5,
+    "resistances": [
+     "Fire"
+    ],
+    "weaknesses": [
+     "Water",
+     "Ice"
+    ]
+   },
+   "tags": [
+    "slime",
+    "fire"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-zone-cinder-hollow",
+     "relation": "spawnLocations"
+    },
+    {
+     "toId": "emberfall-item-slime-gel",
+     "relation": "lootTable"
+    },
+    {
+     "toId": "emberfall-item-ember-core",
+     "relation": "lootTable"
+    },
+    {
+     "toId": "emberfall-skill-ember-breath",
+     "relation": "skills"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-mob-cinder-golem",
+   "kind": "mob",
+   "name": "Cinder Golem",
+   "entityType": "Miniboss",
+   "status": "Final",
+   "author": "Example",
+   "summary": "Guardian of the Hollow's lower gate.",
+   "body": "",
+   "fields": {
+    "rarity": "Rare",
+    "health": 420,
+    "damage": 28,
+    "armor": 12,
+    "aggroRadius": 6,
+    "resistances": [
+     "Fire",
+     "Physical"
+    ],
+    "weaknesses": [
+     "Ice"
+    ],
+    "aiBehavior": "Slow. Slams the ground every 6 s, breathes fire below half health."
+   },
+   "tags": [
+    "golem",
+    "fire",
+    "boss"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-zone-cinder-hollow",
+     "relation": "spawnLocations"
+    },
+    {
+     "toId": "emberfall-item-ember-core",
+     "relation": "lootTable"
+    },
+    {
+     "toId": "emberfall-item-mana-tonic",
+     "relation": "lootTable"
+    },
+    {
+     "toId": "emberfall-skill-ember-breath",
+     "relation": "skills"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-mob-ashen-skeleton",
+   "kind": "mob",
+   "name": "Ashen Skeleton",
+   "entityType": "Undead",
+   "status": "Draft",
+   "author": "Example",
+   "summary": "The remains of wardens who never came back.",
+   "body": "",
+   "fields": {
+    "rarity": "Uncommon",
+    "health": 90,
+    "damage": 16,
+    "armor": 6,
+    "aggroRadius": 7,
+    "weaknesses": [
+     "Holy"
+    ]
+   },
+   "tags": [
+    "undead"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-zone-sunken-spire",
+     "relation": "spawnLocations"
+    },
+    {
+     "toId": "emberfall-item-mana-tonic",
+     "relation": "lootTable"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-mob-hollow-king",
+   "kind": "mob",
+   "name": "The Hollow King",
+   "entityType": "Boss",
+   "status": "In Review",
+   "author": "Example",
+   "summary": "The final boss. Wears a crown of cinders.",
+   "body": "",
+   "fields": {
+    "rarity": "Legendary",
+    "health": 1500,
+    "damage": 42,
+    "armor": 18,
+    "aggroRadius": 12,
+    "resistances": [
+     "Fire"
+    ],
+    "aiBehavior": "Three phases: sword, fire, and a desperate final phase that summons skeletons."
+   },
+   "tags": [
+    "boss",
+    "fire",
+    "undead"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-zone-sunken-spire",
+     "relation": "spawnLocations"
+    },
+    {
+     "toId": "emberfall-item-hollow-crown",
+     "relation": "lootTable"
+    },
+    {
+     "toId": "emberfall-item-ember-blade",
+     "relation": "lootTable"
+    },
+    {
+     "toId": "emberfall-skill-ember-breath",
+     "relation": "skills"
+    },
+    {
+     "toId": "emberfall-skill-ember-nova",
+     "relation": "skills"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-quest-spark-in-the-woods",
+   "kind": "quest",
+   "name": "A Spark in the Woods",
+   "entityType": "Main Quest",
+   "status": "Final",
+   "author": "Example",
+   "summary": "Lysa asks you to find what is burning in Mosslight Woods.",
+   "body": "",
+   "fields": {
+    "difficulty": "Easy",
+    "recommendedLevel": 1,
+    "objectives": [
+     "Talk to Warden Lysa",
+     "Defeat 5 Moss Slimes",
+     "Follow the scorch marks"
+    ],
+    "rewards": [
+     "50 gold",
+     "100 XP"
+    ],
+    "storyImpact": "Introduces the ember threat."
+   },
+   "tags": [
+    "main"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-lore-lysa-thorne",
+     "relation": "questGiver"
+    },
+    {
+     "toId": "emberfall-lore-lysa-thorne",
+     "relation": "completionNpc"
+    },
+    {
+     "toId": "emberfall-zone-mosslight-woods",
+     "relation": "zone"
+    },
+    {
+     "toId": "emberfall-item-rusty-sword",
+     "relation": "rewardItems"
+    },
+    {
+     "toId": "emberfall-quest-into-cinder-hollow",
+     "relation": "followUpQuests"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-quest-gel-for-the-alchemist",
+   "kind": "quest",
+   "name": "Gel for the Alchemist",
+   "entityType": "Side Quest",
+   "status": "Final",
+   "author": "Example",
+   "summary": "Bram needs slime gel for a new batch of potions.",
+   "body": "",
+   "fields": {
+    "difficulty": "Easy",
+    "recommendedLevel": 2,
+    "objectives": [
+     "Collect 10 Slime Gel",
+     "Bring it to Bram"
+    ],
+    "rewards": [
+     "40 gold"
+    ]
+   },
+   "tags": [
+    "side"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-lore-keeper-bram",
+     "relation": "questGiver"
+    },
+    {
+     "toId": "emberfall-lore-keeper-bram",
+     "relation": "completionNpc"
+    },
+    {
+     "toId": "emberfall-zone-mosslight-woods",
+     "relation": "zone"
+    },
+    {
+     "toId": "emberfall-item-health-potion",
+     "relation": "rewardItems"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-quest-into-cinder-hollow",
+   "kind": "quest",
+   "name": "Into Cinder Hollow",
+   "entityType": "Main Quest",
+   "status": "In Review",
+   "author": "Example",
+   "summary": "Descend into the Hollow and stop the Cinder Golem.",
+   "body": "",
+   "fields": {
+    "difficulty": "Hard",
+    "recommendedLevel": 8,
+    "objectives": [
+     "Light the three warden braziers",
+     "Defeat the Cinder Golem"
+    ],
+    "rewards": [
+     "250 gold",
+     "600 XP"
+    ]
+   },
+   "tags": [
+    "main"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-lore-lysa-thorne",
+     "relation": "questGiver"
+    },
+    {
+     "toId": "emberfall-lore-lysa-thorne",
+     "relation": "completionNpc"
+    },
+    {
+     "toId": "emberfall-zone-cinder-hollow",
+     "relation": "zone"
+    },
+    {
+     "toId": "emberfall-item-ember-core",
+     "relation": "rewardItems"
+    },
+    {
+     "toId": "emberfall-quest-spark-in-the-woods",
+     "relation": "prerequisites"
+    },
+    {
+     "toId": "emberfall-quest-the-hollow-crown",
+     "relation": "followUpQuests"
+    }
+   ]
+  },
+  {
+   "id": "emberfall-quest-the-hollow-crown",
+   "kind": "quest",
+   "name": "The Hollow Crown",
+   "entityType": "Main Quest",
+   "status": "Draft",
+   "author": "Example",
+   "summary": "Climb the Sunken Spire and face the Hollow King.",
+   "body": "",
+   "fields": {
+    "difficulty": "Legendary",
+    "recommendedLevel": 13,
+    "objectives": [
+     "Reach the top of the Spire",
+     "Defeat the Hollow King"
+    ],
+    "rewards": [
+     "1000 gold",
+     "2500 XP"
+    ],
+    "storyImpact": "Ends the first act. Lysa retires; the player becomes a warden."
+   },
+   "tags": [
+    "main"
+   ],
+   "links": [
+    {
+     "toId": "emberfall-lore-lysa-thorne",
+     "relation": "questGiver"
+    },
+    {
+     "toId": "emberfall-lore-lysa-thorne",
+     "relation": "completionNpc"
+    },
+    {
+     "toId": "emberfall-zone-sunken-spire",
+     "relation": "zone"
+    },
+    {
+     "toId": "emberfall-item-hollow-crown",
+     "relation": "rewardItems"
+    },
+    {
+     "toId": "emberfall-quest-into-cinder-hollow",
+     "relation": "prerequisites"
+    }
+   ]
+  }
+ ]
+}

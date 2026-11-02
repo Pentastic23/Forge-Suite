@@ -8,6 +8,7 @@ export function ProjectPicker(props: { onOpened: (p: CurrentProject) => void; no
   const [projects, setProjects] = useState<ProjectFile[]>();
   const [name, setName] = useState("");
   const [folder, setFolder] = useState("");
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     api.projectsList().then(setProjects).catch(() => setProjects([]));
@@ -19,6 +20,11 @@ export function ProjectPicker(props: { onOpened: (p: CurrentProject) => void; no
   };
   const openPath = async (path: string) => {
     try { props.onOpened(await api.projectOpen(path)); } catch (e) { props.notify(errorText(e), true); }
+  };
+  const example = async () => {
+    setBusy(true);
+    try { props.onOpened(await api.projectExample()); } catch (e) { props.notify(errorText(e), true); }
+    setBusy(false);
   };
   const browse = async () => {
     const path = await open({ multiple: false, filters: [{ name: "Balance Forge project", extensions: ["balanceforge"] }] });
@@ -43,13 +49,23 @@ export function ProjectPicker(props: { onOpened: (p: CurrentProject) => void; no
           </div>
           {folder && <p className="muted" style={{ fontSize: 12, margin: "8px 0 0" }}>Saved in {folder}</p>}
         </Card>
+        <div style={{ height: 16 }} />
+        <Card>
+          <div style={{ display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between" }}>
+            <div>
+              <div style={{ fontWeight: 600 }}>Example project</div>
+              <p className="muted" style={{ fontSize: 13, margin: "4px 0 0" }}>Emberfall's mobs, items and weapons as stat sheets with formulas, a patch to compare, and an economy ready to simulate.</p>
+            </div>
+            <div style={{ flexShrink: 0 }}><Button disabled={busy} onClick={() => void example()}>{busy ? "Opening…" : "Open example"}</Button></div>
+          </div>
+        </Card>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "24px 0 8px" }}>
           <div style={{ fontWeight: 600 }}>Open a project</div>
           <Button onClick={() => void browse()}>Browse…</Button>
         </div>
         <Card>
           {projects === undefined ? <p className="muted">Loading…</p> : projects.length === 0 ? (
-            <p className="muted" style={{ margin: 0 }}>No projects yet. Create one above.</p>
+            <p className="muted" style={{ margin: 0 }}>No projects yet. Create one above, or open the example.</p>
           ) : (
             <ul className="list-plain">
               {projects.map((p) => (

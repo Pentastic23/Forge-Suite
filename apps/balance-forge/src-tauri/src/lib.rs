@@ -1,3 +1,4 @@
+mod example;
 mod exchange;
 mod patch;
 mod projects;
@@ -96,6 +97,14 @@ fn project_create(state: tauri::State<AppState>, name: String) -> CmdResult<Curr
     }
     let path = projects::new_project_path(name).map_err(|e| e.to_string())?;
     let project = Project::create(&path, name)?;
+    set_open(&state, path, project)
+}
+
+/// Opens the Emberfall example project, making it the first time.
+#[tauri::command]
+fn project_example(state: tauri::State<AppState>) -> CmdResult<CurrentProject> {
+    allowed(&state)?;
+    let (path, project) = example::open_or_build()?;
     set_open(&state, path, project)
 }
 
@@ -286,6 +295,7 @@ macro_rules! commands {
             projects_folder,
             project_create,
             project_open,
+            project_example,
             project_close,
             project_current,
             project_rename,

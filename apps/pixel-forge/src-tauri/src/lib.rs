@@ -118,6 +118,31 @@ fn project_create(state: tauri::State<AppState>, name: String) -> CmdResult<Curr
     set_open(&state, path, project)
 }
 
+#[derive(Serialize)]
+struct ExampleProject {
+    project: CurrentProject,
+    /// True while the example has no sketches yet; the window draws and adds them.
+    empty: bool,
+}
+
+/// Opens the Emberfall example project, making the file the first time. Its
+/// sketches are drawn by the window (see example.ts), since that is where the
+/// conversion engine runs.
+#[tauri::command]
+fn project_example(state: tauri::State<AppState>) -> CmdResult<ExampleProject> {
+    allowed(&state)?;
+    let dir = projects::projects_dir();
+    let path = dir.join(format!("Emberfall Example.{}", projects::EXTENSION));
+    let project = if path.is_file() {
+        Project::open(&path)?
+    } else {
+        std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+        Project::create(&path, "Emberfall (example)")?
+    };
+    let empty = project.sketches()?.is_empty();
+    Ok(ExampleProject { project: set_open(&state, path, project)?, empty })
+}
+
 #[tauri::command]
 fn project_open(state: tauri::State<AppState>, path: PathBuf) -> CmdResult<CurrentProject> {
     let project = Project::open(&path)?;
@@ -375,6 +400,7 @@ macro_rules! commands {
             projects_folder,
             project_create,
             project_open,
+            project_example,
             project_close,
             project_current,
             project_rename,

@@ -50,6 +50,7 @@ export function rigFrames(base: Idx, N: number, an: Anim, a: Asset): Idx[];
 export function profileOf(N: number): Profile;
 export function autoRig(a: Asset, type: string, armHint?: string): { ok: boolean; msg?: string; bones?: number; notes?: string[] };
 export function bakePreset(a: Asset, an: Anim, id: string): boolean;
+export function setKey(an: Anim, boneId: number, f: number, vals: Partial<Omit<Key, "f">>, ease?: string): Key;
 export function setNextId(n: number): void;
 export function getNextId(): number;
 export const PRESET_ANIMS: Record<string, { label: string }>;

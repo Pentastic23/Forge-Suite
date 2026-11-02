@@ -4,6 +4,14 @@ import { api, type InstalledApp, type LogEntry } from "../api";
 import { AppIcon } from "../AppCard";
 import { timeAgo } from "../store";
 
+/** What each app's Emberfall example shows, in the order the work flows between them. */
+const EXAMPLE_TOUR: { id: string; name: string; what: string }[] = [
+  { id: "forge-core", name: "Forge Core", what: "The design: zones, mobs, items, skills, quests and lore, linked to each other, with version history." },
+  { id: "balance-forge", name: "Balance Forge", what: "The same mobs and items as stat sheets with formulas, a weapons sheet with two outliers, a patch to compare and an economy to simulate." },
+  { id: "asset-forge", name: "Asset Forge", what: "Sprites, icons, sounds and music for those entries, a few problems for Checks to find, and production slots to finish." },
+  { id: "pixel-forge", name: "Pixel Forge", what: "Sketches of the hero, the enemies, an effect and an item, rigged and animated, ready to export." },
+];
+
 export function Home(props: {
   apps: InstalledApp[];
   recent: Record<string, number>;
@@ -70,6 +78,26 @@ export function Home(props: {
           )}
         </>
       )}
+
+      <div className="hub-section">Example game: Emberfall</div>
+      <Card>
+        <p className="forge-page-sub" style={{ marginTop: 0 }}>
+          Every app comes with the same small made-up game, so you can see how they work and how they pass work to each other.
+          Open an app and press <b>Open example</b> on its start screen.
+        </p>
+        <ul className="activity">
+          {EXAMPLE_TOUR.map((t) => {
+            const app = ready.find((a) => a.manifest.id === t.id);
+            return (
+              <li key={t.id} style={{ alignItems: "center" }}>
+                <span style={{ minWidth: 120, fontWeight: 600 }}>{t.name}</span>
+                <span style={{ flex: 1 }}>{t.what}</span>
+                {app && <Button variant="ghost" onClick={() => props.onLaunch(app)}>Open</Button>}
+              </li>
+            );
+          })}
+        </ul>
+      </Card>
 
       <div className="hub-section" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         Recent activity
