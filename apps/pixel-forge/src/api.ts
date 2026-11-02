@@ -17,12 +17,17 @@ export interface SketchRow {
   name: string;
   png: string;
   doc: unknown;
+  /** The AI-colored version (base64 PNG), when one was made. */
+  aiPng?: string | null;
   folder: string;
   tags: string[];
   favorite: boolean;
   createdAt: number;
   updatedAt: number;
 }
+export type AIQuality = "low" | "medium" | "high";
+export interface AIColorRequest { png: string; prompt: string; size: string; quality: AIQuality; model: string }
+export interface AIColorResult { png: string; mock: boolean }
 export interface LibraryPatch { folder?: string; tags?: string[]; favorite?: boolean }
 
 export const api = {
@@ -55,6 +60,12 @@ export const api = {
   exportFile: (path: string, data: string) => invoke<void>("export_file", { path, data }),
   readText: (path: string) => invoke<string>("read_text", { path }),
   readImage: (path: string) => invoke<string>("read_image", { path }),
+
+  aiHasKey: () => invoke<boolean>("ai_has_key"),
+  aiSetKey: (key: string) => invoke<void>("ai_set_key", { key }),
+  aiClearKey: () => invoke<void>("ai_clear_key"),
+  aiColor: (id: number, req: AIColorRequest) => invoke<AIColorResult>("ai_color", { id, req }),
+  aiImageSet: (id: number, png: string | null) => invoke<void>("ai_image_set", { id, png }),
 };
 
 export function errorText(e: unknown): string {

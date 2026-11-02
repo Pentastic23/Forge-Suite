@@ -165,7 +165,8 @@ pnpm pixel:build
 
 Each project is one `.pixelforge` file (SQLite) in the projects folder. Pixel Forge is the
 remake of Sprite Foundry: its conversion engine is carried over as it was, so every pixel is
-computed from the sketch you give it and no image model runs.
+computed from the sketch you give it. The one exception is optional AI coloring, which is off
+until you turn it on and add your own key.
 
 - **Studio.** Tools on the left, the sprite in the middle, properties on the right and the
   timeline below. A sketch (a photo of paper or any image) has its background removed and
@@ -185,6 +186,13 @@ computed from the sketch you give it and no image model runs.
   clips, GameMaker strips, Spine skeletons, PNG sequences and sprite sheet JSON (Phaser,
   Defold, PixiJS), plus the palette, the style profile and a README of import steps.
   Asset Forge can index the exported folder.
+- **AI coloring (optional).** In the Sketch tab, turn on "Color sketches with OpenAI" and add
+  your own OpenAI API key. It is kept in Windows Credential Manager, never in the project, and
+  only sent to OpenAI. "Color this sketch with AI" sends the sketch and your prompt to OpenAI's
+  image edit API (`gpt-image-1` by default) and is billed to your account. The colored result is
+  kept in the project with the sketch, and you can switch between it and your own sketch at
+  any time. For trying the panel without paying, a development build started with
+  `PIXELFORGE_AI_MOCK=1` returns the sketch itself instead of calling OpenAI.
 
 ## Projects folder
 

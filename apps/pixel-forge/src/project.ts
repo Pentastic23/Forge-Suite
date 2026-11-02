@@ -5,6 +5,7 @@ import type { Asset } from "./engine/core";
 import { assets, clearHistory, dirty, ed, emit, removeSketch, snake } from "./engine/editor";
 import { assetToDoc, docToAsset, imageToPngB64, pngB64ToImageData } from "./engine/doc";
 import { loadSettings, settingsSnapshot, type SavedSettings } from "./engine/style";
+import { loadAIPrefs } from "./ai";
 
 export interface Meta { folder: string; tags: string[]; favorite: boolean; createdAt: number; updatedAt: number }
 export const meta = new Map<number, Meta>();
@@ -18,11 +19,11 @@ export async function loadProject(): Promise<string[]> {
   dirty.assets.clear();
   dirty.settings = false;
   loadSettings(await api.setting<SavedSettings>("style").catch(() => null));
+  await loadAIPrefs();
   const problems: string[] = [];
   for (const r of await api.sketches()) {
     try {
-      const src = await pngB64ToImageData(r.png);
-      assets.push(docToAsset(r.id, r.name, src, r.doc));
+      assets.push(await rowToAsset(r));
       meta.set(r.id, metaOf(r));
     } catch {
       problems.push(r.name);
@@ -66,10 +67,18 @@ export async function duplicate(id: number): Promise<number | null> {
   return newId;
 }
 
+async function rowToAsset(r: SketchRow): Promise<Asset> {
+  const a = docToAsset(r.id, r.name, await pngB64ToImageData(r.png), r.doc);
+  // a broken AI image only loses the AI version, never the sketch
+  if (r.aiPng) a.aiSrc = await pngB64ToImageData(r.aiPng, 1024).catch(() => null);
+  if (!a.aiSrc) a.useAI = false;
+  return a;
+}
+
 async function reloadOne(id: number) {
   const r = (await api.sketches()).find((x) => x.id === id);
   if (!r) return;
-  assets.push(docToAsset(r.id, r.name, await pngB64ToImageData(r.png), r.doc));
+  assets.push(await rowToAsset(r));
   meta.set(r.id, metaOf(r));
   emit();
 }

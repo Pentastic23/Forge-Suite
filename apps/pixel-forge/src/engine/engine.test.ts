@@ -132,3 +132,52 @@ describe("palettes and style training", async () => {
     expect(St.applyTheme({ nope: 1 })).toBe(false);
   });
 });
+
+describe("AI coloring", async () => {
+  const C = await import("./core.js");
+  const Ed = await import("./editor.js");
+  const D = await import("./doc.js");
+  it("wraps the person's words in instructions that keep the drawing", () => {
+    C.S.light = "tr";
+    C.S.lockPalette = false;
+    const p = Ed.buildAIPrompt("  red cloak  ");
+    expect(p).toContain("light from the top right");
+    expect(p).toContain("Keep exactly the same pose");
+    expect(p.endsWith("Colors and details: red cloak")).toBe(true);
+    expect(Ed.buildAIPrompt("")).not.toContain("Colors and details");
+    expect(Ed.buildAIPrompt("x".repeat(900)).length).toBeLessThan(1400);
+    C.setPalette([[255, 0, 0], [0, 0, 255]]);
+    C.S.lockPalette = true;
+    expect(Ed.buildAIPrompt()).toContain("Use only these colors: #ff0000, #0000ff.");
+    C.S.lockPalette = false;
+  });
+  it("picks the image shape closest to the sketch", () => {
+    const at = (w: number, h: number) => Ed.aiSizeFor({ src: new ImageData(w, h) } as never);
+    expect([at(100, 180), at(100, 100), at(200, 100)]).toEqual(["1024x1536", "1024x1024", "1536x1024"]);
+  });
+  it("keeps an AI image that already has a transparent background", () => {
+    const im = sketch();
+    for (let i = 0; i < im.width * im.height; i++) if (im.data[i * 4] === 244) im.data.fill(0, i * 4, i * 4 + 4);
+    const a = C.newAsset("cutout", sketch());
+    Ed.setAIImage(a, im);
+    const idx = C.finalize(C.buildBase(a, 32), 32);
+    let filled = 0;
+    for (const v of idx) if (v >= 0) filled++;
+    expect(filled).toBeGreaterThan(32 * 32 * 0.15);
+    expect(filled).toBeLessThan(32 * 32 * 0.8);
+  });
+  it("switches between the AI version and the sketch, and remembers the choice", () => {
+    const a = C.newAsset("knight", sketch());
+    const before = C.preKey(a);
+    Ed.setAIImage(a, sketch());
+    expect(a.useAI).toBe(true);
+    const withAI = C.preKey(a);
+    expect(withAI).not.toBe(before);
+    const doc = JSON.parse(JSON.stringify(D.assetToDoc(a)));
+    expect(doc.useAI).toBe(true);
+    expect(D.docToAsset(7, "knight", a.src, doc).useAI).toBe(true);
+    Ed.setAIImage(a, null);
+    expect([a.useAI, a.aiSrc, C.preKey(a)]).toEqual([false, null, before]);
+    expect(D.assetToDoc(a).useAI).toBe(false);
+  });
+});
