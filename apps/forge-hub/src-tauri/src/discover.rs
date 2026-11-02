@@ -163,8 +163,25 @@ fn dedupe(paths: Vec<PathBuf>) -> Vec<PathBuf> {
 
 /// Install folders that Windows lists under "Installed apps" for the suite's
 /// apps, wherever the user chose to install them.
+/// Asking Windows spawns `reg` several times, so the answer is kept for a minute.
 #[cfg(windows)]
 fn registry_install_dirs() -> Vec<PathBuf> {
+    use std::sync::Mutex;
+    use std::time::{Duration, Instant};
+    static CACHE: Mutex<Option<(Instant, Vec<PathBuf>)>> = Mutex::new(None);
+    let mut cache = CACHE.lock().unwrap_or_else(|e| e.into_inner());
+    if let Some((at, dirs)) = cache.as_ref() {
+        if at.elapsed() < Duration::from_secs(60) {
+            return dirs.clone();
+        }
+    }
+    let dirs = query_registry_install_dirs();
+    *cache = Some((Instant::now(), dirs.clone()));
+    dirs
+}
+
+#[cfg(windows)]
+fn query_registry_install_dirs() -> Vec<PathBuf> {
     use std::os::windows::process::CommandExt;
     const CREATE_NO_WINDOW: u32 = 0x0800_0000;
     let mut out = Vec::new();

@@ -137,7 +137,16 @@ pub fn scan(folders: &[PathBuf]) -> ScanResult {
     let mut result = ScanResult::default();
     let mut seen: Vec<PathBuf> = Vec::new();
     for root in folders {
-        let Ok(entries) = fs::read_dir(root) else { continue };
+        let entries = match fs::read_dir(root) {
+            Ok(e) => e,
+            Err(e) => {
+                // A folder that exists but can't be read is worth knowing about.
+                if root.is_dir() {
+                    result.problems.push(ScanProblem { path: root.clone(), errors: vec![format!("could not read folder: {e}")] });
+                }
+                continue;
+            }
+        };
         let mut dirs: Vec<PathBuf> = entries.flatten().map(|e| e.path()).filter(|p| p.is_dir()).collect();
         dirs.sort();
         dirs.insert(0, root.clone());

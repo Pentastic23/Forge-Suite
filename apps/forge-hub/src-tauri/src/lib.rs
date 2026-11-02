@@ -29,14 +29,39 @@ fn save_settings(settings: Settings) -> Result<(), String> {
     Ok(())
 }
 
-#[tauri::command]
-fn list_apps() -> ScanResult {
+/// Scans for apps off the main thread. An empty result is retried once, and
+/// every scan's outcome is logged so a drop can be traced.
+fn scan_now() -> ScanResult {
     let s = settings::load(&hub_dir());
-    let result = discover::find_apps(&s.app_folders);
+    let mut result = discover::find_apps(&s.app_folders);
+    if result.apps.is_empty() {
+        std::thread::sleep(std::time::Duration::from_millis(400));
+        result = discover::find_apps(&s.app_folders);
+    }
+    let folders = discover::search_folders(&s.app_folders);
+    let names: Vec<&str> = result.apps.iter().map(|a| a.manifest.name.as_str()).collect();
+    let level = if result.apps.is_empty() { Level::Warn } else { Level::Info };
+    activity::log(
+        &hub_dir(),
+        level,
+        "hub",
+        format!(
+            "Scan found {} app(s) [{}] in {} folder(s): {}",
+            result.apps.len(),
+            names.join(", "),
+            folders.len(),
+            folders.iter().map(|f| f.path.display().to_string()).collect::<Vec<_>>().join("; ")
+        ),
+    );
     for p in &result.problems {
         activity::log(&hub_dir(), Level::Warn, "hub", format!("Skipped {}: {}", p.path.display(), p.errors.join("; ")));
     }
     result
+}
+
+#[tauri::command]
+async fn list_apps() -> Result<ScanResult, String> {
+    tauri::async_runtime::spawn_blocking(scan_now).await.map_err(|e| format!("App scan failed: {e}"))
 }
 
 /// Every folder searched for apps: the ones from Settings, then the automatic ones.
@@ -51,9 +76,10 @@ fn recent_apps() -> HashMap<String, u64> {
 }
 
 #[tauri::command]
-fn launch_app(app: tauri::AppHandle, id: String, args: Option<Vec<String>>) -> Result<u32, String> {
+async fn launch_app(app: tauri::AppHandle, id: String, args: Option<Vec<String>>) -> Result<u32, String> {
     let s = settings::load(&hub_dir());
-    let scan = discover::find_apps(&s.app_folders);
+    let folders = s.app_folders.clone();
+    let scan = tauri::async_runtime::spawn_blocking(move || discover::find_apps(&folders)).await.map_err(|e| e.to_string())?;
     let found = scan.apps.iter().find(|a| a.manifest.id == id).ok_or_else(|| format!("No installed app with id \"{id}\""))?;
     let pid = launcher::launch(found, &hub_dir(), &forge_launch_guard::default_launch_dir(), &args.unwrap_or_default())?;
     if s.close_on_launch {
