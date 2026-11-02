@@ -1,4 +1,5 @@
 mod ai;
+mod comfy;
 mod export;
 mod projects;
 mod store;
@@ -312,19 +313,47 @@ fn ai_clear_key(state: tauri::State<AppState>) -> CmdResult<()> {
     ai::clear_key()
 }
 
+/// Keeps a colored image with its sketch and notes where it came from.
+fn keep_ai_image(state: &tauri::State<AppState>, id: i64, res: &ai::ColorResult, how: String) -> CmdResult<()> {
+    let png = b64().decode(&res.png).map_err(|_| "The AI image couldn't be read".to_string())?;
+    let how = if res.mock { "test mode, nothing sent".to_string() } else { how };
+    with_project(state, |p| {
+        p.set_ai_image(id, Some(&png))?;
+        p.log("AI colored", &format!("Sketch {id} ({how})"))
+    })
+}
+
 /// Sends one sketch to OpenAI and keeps the colored result with the sketch.
 #[tauri::command]
 async fn ai_color(state: tauri::State<'_, AppState>, id: i64, req: ai::ColorRequest) -> CmdResult<ai::ColorResult> {
     allowed(&state)?;
-    let quality = req.quality.clone();
+    let how = format!("OpenAI, {} quality", ai::clean_quality(&req.quality));
     let res = ai::color_sketch(req).await?;
-    let png = b64().decode(&res.png).map_err(|_| "OpenAI's image couldn't be read".to_string())?;
-    with_project(&state, |p| {
-        p.set_ai_image(id, Some(&png))?;
-        let how = if res.mock { "test mode, nothing sent".to_string() } else { format!("OpenAI, {} quality", ai::clean_quality(&quality)) };
-        p.log("AI colored", &format!("Sketch {id} ({how})"))
-    })?;
+    keep_ai_image(&state, id, &res, how)?;
     Ok(res)
+}
+
+/// Asks a ComfyUI server which checkpoints it has (and whether it is running at all).
+#[tauri::command]
+async fn comfy_info(state: tauri::State<'_, AppState>, url: String) -> CmdResult<comfy::ComfyInfo> {
+    allowed(&state)?;
+    comfy::info(&url).await
+}
+
+/// Colors one sketch on the person's own ComfyUI and keeps the result with the sketch.
+#[tauri::command]
+async fn comfy_color(state: tauri::State<'_, AppState>, id: i64, req: comfy::ComfyRequest) -> CmdResult<ai::ColorResult> {
+    allowed(&state)?;
+    let how = if req.workflow.is_some() { "ComfyUI, own workflow".to_string() } else { format!("ComfyUI, {}", req.checkpoint) };
+    let res = comfy::color_sketch(req).await?;
+    keep_ai_image(&state, id, &res, how)?;
+    Ok(res)
+}
+
+#[tauri::command]
+async fn comfy_interrupt(state: tauri::State<'_, AppState>, url: String) -> CmdResult<()> {
+    allowed(&state)?;
+    comfy::interrupt(&url).await
 }
 
 #[tauri::command]
@@ -374,7 +403,10 @@ pub fn run() {
             ai_set_key,
             ai_clear_key,
             ai_color,
-            ai_image_set
+            ai_image_set,
+            comfy_info,
+            comfy_color,
+            comfy_interrupt
         ])
         .run(tauri::generate_context!())
         .expect("error while running Pixel Forge");

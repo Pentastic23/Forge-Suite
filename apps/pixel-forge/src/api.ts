@@ -24,6 +24,11 @@ export interface SketchRow {
 export type AIQuality = "low" | "medium" | "high";
 export interface AIColorRequest { png: string; prompt: string; size: string; quality: AIQuality; model: string }
 export interface AIColorResult { png: string; mock: boolean }
+export interface ComfyRequest {
+  url: string; png: string; prompt: string; negative: string; checkpoint: string;
+  steps: number; cfg: number; denoise: number; seed: number; workflow: unknown | null;
+}
+export interface ComfyInfo { url: string; checkpoints: string[] }
 export interface LibraryPatch { folder?: string; tags?: string[]; favorite?: boolean }
 
 export const api = {
@@ -62,6 +67,9 @@ export const api = {
   aiClearKey: () => invoke<void>("ai_clear_key"),
   aiColor: (id: number, req: AIColorRequest) => invoke<AIColorResult>("ai_color", { id, req }),
   aiImageSet: (id: number, png: string | null) => invoke<void>("ai_image_set", { id, png }),
+  comfyInfo: (url: string) => invoke<ComfyInfo>("comfy_info", { url }),
+  comfyColor: (id: number, req: ComfyRequest) => invoke<AIColorResult>("comfy_color", { id, req }),
+  comfyInterrupt: (url: string) => invoke<void>("comfy_interrupt", { url }),
 };
 
 export function errorText(e: unknown): string {
