@@ -213,3 +213,6 @@ textarea.forge-input { resize: vertical; font: inherit; line-height: 1.4; }
 .ai-run { width: 100%; margin-top: 4px; }
 .ai-stack { display: grid; gap: 6px; margin: 10px 0 6px; }
 .ai-stack .hint { margin: 0; }
+.ai-run-row { flex-wrap: nowrap; margin-top: 4px; }
+.ai-run-row .ai-run { flex: 1; width: auto; margin: 0; }
+.ai-wf { justify-content: space-between; align-items: center; }

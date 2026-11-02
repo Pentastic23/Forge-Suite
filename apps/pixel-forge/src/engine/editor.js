@@ -501,6 +501,17 @@ export function buildAIPrompt(user){
     'Fully transparent background, no ground shadow, no text, no extra objects.' + pal +
     (user && user.trim() ? ' Colors and details: ' + user.trim().slice(0, 600) : '');
 }
+// the same intent for a local Stable Diffusion checkpoint, which reads tags better than sentences
+export function buildLocalPrompt(user){
+  const light = {tl:'top left', t:'top', tr:'top right'}[S.light] || 'top left';
+  const words = user && user.trim() ? user.trim().slice(0, 600) + ', ' : '';
+  return {
+    positive: words + '2d game character, clean colored illustration, flat colors, simple cel shading, light from the ' + light +
+      ', bold clean dark outlines, same pose, full body, plain white background',
+    negative: 'photo, realistic, 3d render, blurry, noisy, sketch lines, paper texture, text, watermark, signature, extra limbs, ' +
+      'extra characters, background scenery, ground shadow, frame, border',
+  };
+}
 // the image size closest to the sketch's shape
 export function aiSizeFor(a){ const r = a.src.width / a.src.height; return r < 0.8 ? '1024x1536' : r > 1.25 ? '1536x1024' : '1024x1024'; }
 const aiChanged = a => { bumpAll(a); if (S.paletteMode === 'auto') lastAutoKey = ''; touch(a); emit(); };
