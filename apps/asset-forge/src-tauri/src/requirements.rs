@@ -215,7 +215,12 @@ pub fn import_codex(p: &Project, path: &Path, templates: &BTreeMap<String, Vec<S
     let mut zip = zip::ZipArchive::new(File::open(path).map_err(|e| e.to_string())?).map_err(|e| format!("Not a valid .forgecodex file: {e}"))?;
     let mut text = String::new();
     zip.by_name("entities.json").map_err(|_| "This .forgecodex file has no entities.json".to_string())?.read_to_string(&mut text).map_err(|e| e.to_string())?;
-    let v: Value = serde_json::from_str(&text).map_err(|e| format!("Could not read entries: {e}"))?;
+    import_codex_text(p, &text, templates)
+}
+
+/// [`import_codex`] for the entities.json text itself.
+pub fn import_codex_text(p: &Project, text: &str, templates: &BTreeMap<String, Vec<String>>) -> Result<(usize, usize)> {
+    let v: Value = serde_json::from_str(text).map_err(|e| format!("Could not read entries: {e}"))?;
     if v.get("formatVersion").and_then(Value::as_u64).unwrap_or(1) > 1 {
         return Err("This file was made by a newer Forge Core. Update Asset Forge to open it.".into());
     }

@@ -34,6 +34,7 @@ crates/launch-guard/   Single-use launch keys (used by Hub and every app)
 crates/forge-paths/    Shared folders, such as where project files live
 crates/forge-formula/  The formula language used in Balance Forge sheets
 examples/demo-app/     A stand-in app for testing launches
+examples/emberfall/    Emberfall, the example game every app can open
 brand/                 Logos
 ```
 
@@ -201,6 +202,14 @@ until you turn it on and add your own key.
     `%CHECKPOINT%`, `%SEED%`, `%STEPS%` and `%DENOISE%`). Nothing is uploaded or billed.
   - For trying the panel without either, a development build started with
     `PIXELFORGE_AI_MOCK=1` returns the sketch itself instead.
+
+## Example projects
+
+Each app's start screen has **Open example**, which opens Emberfall, a small made-up game, in
+that app: linked codex entries in Forge Core, stat sheets and simulations in Balance Forge, an
+asset library with checks and production slots in Asset Forge, and rigged, animated sketches in
+Pixel Forge. They are built from one shared file, so the ids line up across apps. See
+`examples/emberfall/README.md`.
 
 ## Projects folder
 

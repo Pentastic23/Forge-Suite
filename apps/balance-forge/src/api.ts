@@ -106,6 +106,8 @@ export const api = {
   projectsFolder: () => invoke<string>("projects_folder"),
   projectCreate: (name: string) => invoke<CurrentProject>("project_create", { name }),
   projectOpen: (path: string) => invoke<CurrentProject>("project_open", { path }),
+  /** Opens the Emberfall example project, making it the first time. */
+  projectExample: () => invoke<CurrentProject>("project_example"),
   projectClose: () => invoke<void>("project_close"),
   projectCurrent: () => invoke<CurrentProject | null>("project_current"),
   projectRename: (name: string) => invoke<ProjectInfo>("project_rename", { name }),

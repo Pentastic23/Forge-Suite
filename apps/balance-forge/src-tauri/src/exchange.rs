@@ -36,7 +36,12 @@ fn read_codex_entities(path: &Path) -> Result<Vec<Value>, String> {
         .map_err(|_| "This .forgecodex file has no entities.json".to_string())?
         .read_to_string(&mut text)
         .map_err(|e| e.to_string())?;
-    let v: Value = serde_json::from_str(&text).map_err(|e| format!("Could not read entries: {e}"))?;
+    parse_codex_entities(&text)
+}
+
+/// The entries in a .forgecodex's entities.json (a Forge Core export).
+pub fn parse_codex_entities(text: &str) -> Result<Vec<Value>, String> {
+    let v: Value = serde_json::from_str(text).map_err(|e| format!("Could not read entries: {e}"))?;
     if v.get("formatVersion").and_then(Value::as_u64).unwrap_or(1) > 1 {
         return Err("This file was made by a newer Forge Core. Update Balance Forge to open it.".into());
     }
@@ -67,7 +72,12 @@ pub struct ImportSummary {
 /// entries by id, so re-importing updates names and imported stats while
 /// keeping columns and rows you added yourself.
 pub fn import_codex(path: &Path, kind: &str, existing: Option<Sheet>) -> Result<ImportSummary, String> {
-    let entities: Vec<Value> = read_codex_entities(path)?.into_iter().filter(|e| e.get("kind").and_then(Value::as_str) == Some(kind)).collect();
+    import_entities(read_codex_entities(path)?, kind, existing)
+}
+
+/// [`import_codex`] for entries already read.
+pub fn import_entities(entities: Vec<Value>, kind: &str, existing: Option<Sheet>) -> Result<ImportSummary, String> {
+    let entities: Vec<Value> = entities.into_iter().filter(|e| e.get("kind").and_then(Value::as_str) == Some(kind)).collect();
     if entities.is_empty() {
         return Err(format!("This file has no {kind} entries"));
     }

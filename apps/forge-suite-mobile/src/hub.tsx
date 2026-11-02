@@ -43,6 +43,10 @@ function Hub() {
         The apps are laid out for a computer screen, so they open zoomed out. Turn the phone sideways for a bigger view.
         Projects are kept inside this app on the phone. Tap the round button in a corner to come back here.
       </p>
+      <p className="hub-note">
+        New here? Each app has an <b>Open example</b> button on its start screen. They all open the same small made-up game,
+        Emberfall, so you can see what every app does with it.
+      </p>
     </main>
   );
 }
