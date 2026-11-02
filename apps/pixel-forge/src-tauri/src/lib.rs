@@ -286,14 +286,11 @@ fn read_image(state: tauri::State<AppState>, path: PathBuf) -> CmdResult<String>
     Ok(b64().encode(bytes))
 }
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
-    let launch_error = forge_launch_guard::verify_from_env(APP_ID).err().map(|e| e.to_string());
-    tauri::Builder::default()
-        .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_opener::init())
-        .manage(AppState { open: Mutex::new(None), launch_error })
-        .invoke_handler(tauri::generate_handler![
+/// Every command the window can call, listed once for [`run`] and [`plugin`].
+/// Forge Suite mobile's build script reads this list, so keep one name per line.
+macro_rules! commands {
+    () => {
+        tauri::generate_handler![
             launch_status,
             projects_list,
             projects_folder,
@@ -320,7 +317,33 @@ pub fn run() {
             export_file,
             read_text,
             read_image
-        ])
+        ]
+    };
+}
+
+/// This app's commands as a plugin named after the app id, so Forge Suite mobile
+/// can hold every Forge app in one Android app (`plugin:<app id>|<command>`).
+/// There is no Forge Hub on the phone to hand out launch keys, so the launch
+/// check is left out here; the desktop app still requires it.
+pub fn plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
+    tauri::plugin::Builder::new(APP_ID)
+        .setup(|app, _api| {
+            tauri::Manager::manage(app, AppState { open: Mutex::new(None), launch_error: None });
+            Ok(())
+        })
+        .invoke_handler(commands!())
+        .build()
+}
+
+/// The desktop app. Android and iOS use [`plugin`] inside Forge Suite mobile instead.
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub fn run() {
+    let launch_error = forge_launch_guard::verify_from_env(APP_ID).err().map(|e| e.to_string());
+    tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
+        .manage(AppState { open: Mutex::new(None), launch_error })
+        .invoke_handler(commands!())
         .run(tauri::generate_context!())
         .expect("error while running Pixel Forge");
 }

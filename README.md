@@ -27,6 +27,7 @@ apps/forge-core/       Forge Core, the Game Development Codex
 apps/balance-forge/    Balance Forge, stat sheets, charts and simulations
 apps/asset-forge/      Asset Forge, the asset library, checks and engine export
 apps/pixel-forge/      Pixel Forge, sketches to pixel art, rigging, animation and export
+apps/forge-suite-mobile/ Forge Suite for Android: every app in one test app
 packages/ui/           Shared React components and theme
 packages/formats/      Shared file formats (app manifest, exchange files)
 crates/launch-guard/   Single-use launch keys (used by Hub and every app)
@@ -192,6 +193,27 @@ Settings, Projects folder; it is saved in `%LOCALAPPDATA%\ForgeSuite\suite.json`
 app reads on its own. The `FORGE_PROJECTS_DIR` environment variable overrides it. Until one
 is chosen, the default is `Documents\Forge\Projects`. Avoid folders synced by OneDrive, which
 can lock a project while it is open.
+
+## Forge Suite for Android (test builds)
+
+`apps/forge-suite-mobile/` puts Forge Core, Balance Forge, Asset Forge and Pixel Forge into
+one Android app, for trying them on a phone. Its first screen lists the apps; each app opens
+on its own page, zoomed out to fit its desktop layout (turn the phone sideways for a bigger
+view), with a round button in the corner to get back. Each app's Rust commands are loaded as
+a plugin named after the app id (see `plugin()` in each app's `lib.rs`). Android can't start
+one app's program from another, so there are no launch keys here; the desktop apps still
+need Forge Hub. Projects are kept inside the app's own storage on the phone.
+
+The **Android test build** workflow builds a signed APK. On a pull request the APK is a
+download on the workflow run. On main it also goes to the `android-test` pre-release, so
+this link always has the newest build:
+<https://github.com/Pentastic23/forge-suite/releases/download/android-test/ForgeSuite-test.apk>.
+Each build installs over the last one and keeps your projects. The signing key is explained
+in `apps/forge-suite-mobile/android/README.md`.
+
+To build it yourself you need the Android SDK and NDK
+([guide](https://v2.tauri.app/start/prerequisites/#android)), then
+`pnpm --filter forge-suite-mobile tauri android init` once, and `pnpm android:build`.
 
 ## Releases and updates
 

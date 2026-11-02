@@ -1,5 +1,9 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invoke as tauriInvoke, type InvokeArgs } from "@tauri-apps/api/core";
+import { suiteCommand } from "@forge/ui";
 import type { OutFile } from "./engine/pack";
+
+/** Calls a command of this app (through its plugin when inside Forge Suite mobile). */
+const invoke = <T>(cmd: string, args?: InvokeArgs) => tauriInvoke<T>(suiteCommand(cmd), args);
 
 export interface ProjectInfo { id: string; name: string; createdAt: number }
 export interface CurrentProject { path: string; info: ProjectInfo }

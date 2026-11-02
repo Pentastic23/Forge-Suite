@@ -1,0 +1,19 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Forge Suite window: every app's commands, plus the dialogs and file opener they use",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-destroy",
+    "dialog:allow-open",
+    "dialog:allow-save",
+    "dialog:allow-ask",
+    "dialog:allow-message",
+    "opener:allow-reveal-item-in-dir",
+    "forge-core:default",
+    "balance-forge:default",
+    "asset-forge:default",
+    "pixel-forge:default"
+  ]
+}
