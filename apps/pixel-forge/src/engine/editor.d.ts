@@ -120,3 +120,10 @@ export function addAllPresets(): void;
 export function rebuildPreset(): void;
 export function copyAnimTo(dstId: number): void;
 export { MATERIALS, SIZES, STYLES, S, P, assets, hex, PRESET_ANIMS, PRESET_ORDER } from "./core";
+
+// AI coloring
+export function buildAIPrompt(user?: string): string;
+export function aiSizeFor(a: Asset): "1024x1024" | "1024x1536" | "1536x1024";
+export function setAIImage(a: Asset, im: ImageData | null): void;
+export function chooseAI(use: boolean): void;
+export function setAIPrompt(text: string): void;

@@ -195,6 +195,10 @@ function preprocess(a){
   const {width:w, height:h} = src, d = new Uint8ClampedArray(src.data);
   const op = new Uint8Array(w * h);
   for (let i = 0; i < w * h; i++) op[i] = d[i*4+3] >= 128 ? 1 : 0;
+  // already cut out (the AI version, or a PNG with a transparent background): the alpha is the background
+  // removal, and the paper tools would read the transparent pixels as black paper and wipe the drawing
+  let clear = 0; for (let x = 0; x < w; x++) clear += 2 - op[x] - op[(h-1)*w + x]; for (let y = 0; y < h; y++) clear += 2 - op[y*w] - op[y*w + w - 1];
+  const bg = clear >= (w + h) ? 'none' : S.bg;
   // flood-remove pixels connected to the seeds whose color is within tol of key
   const flood = (seeds, key, tol2) => {
     const near = i => { const dr = d[i*4]-key[0], dg = d[i*4+1]-key[1], db = d[i*4+2]-key[2]; return dr*dr + dg*dg + db*db <= tol2; };
@@ -217,13 +221,13 @@ function preprocess(a){
     return m;
   };
   let warn = '';
-  if ((S.bg === 'paper' || S.bg === 'outlined') && S.flatten) flattenPaper(d, w, h);
+  if ((bg === 'paper' || bg === 'outlined') && S.flatten) flattenPaper(d, w, h);
   // areas the person clicked on the sketch (shadows, stray marks) go first, so they can't act as an outline
   for (const pt of a.erasePts || []){
     const sx = Math.min(w-1, Math.max(0, Math.floor(pt.x * w))), sy = Math.min(h-1, Math.max(0, Math.floor(pt.y * h))), s0 = sy*w + sx;
     if (op[s0]) flood([s0], [d[s0*4], d[s0*4+1], d[s0*4+2]], S.eraseTol * S.eraseTol);
   }
-  if (S.bg === 'outlined'){
+  if (bg === 'outlined'){
     // Inside my outline: whatever can be reached from the image edge without crossing ink is background.
     // Paper texture, lighting, shadows and stains outside the drawn border can't survive this.
     const inkMax = S.lineDark / 100 * 255;
@@ -243,7 +247,7 @@ function preprocess(a){
       bgm.set(nx); }
     let kept = 0; for (let i = 0; i < w*h; i++){ if (bgm[i]) op[i] = 0; else if (op[i]) kept++; }
     if (kept < w * h * 0.005) warn = 'Your outline looks open, so the inside leaked out. Raise "Close gaps" or close the line.';
-  } else if (S.bg === 'paper'){
+  } else if (bg === 'paper'){
     // Photo of paper: paper = bright and nearly colorless after the lighting fix
     const minL = 255 - S.bgTol * 0.9, maxC = 25 + S.bgTol * 0.3;
     const isPaper = i => op[i] && lum(i) >= minL && chroma(i) < maxC;
@@ -270,12 +274,12 @@ function preprocess(a){
           if (j >= 0 && op[j] && lab[j] < 0){ lab[j] = s; st.push(j); comp.push(j); } }
       if (edge && chr / comp.length < 24) for (const i of comp) op[i] = 0;
     }
-  } else if (S.bg !== 'none'){
+  } else if (bg !== 'none'){
     const corners = [0, w-1, (h-1)*w, h*w-1].filter(i => op[i]);
     if (corners.length){
       const key = [0,1,2].map(c => corners.reduce((s, i) => s + d[i*4+c], 0) / corners.length);
       const tol2 = S.bgTol * S.bgTol;
-      if (S.bg === 'key'){ for (let i = 0; i < w*h; i++){ const dr = d[i*4]-key[0], dg = d[i*4+1]-key[1], db = d[i*4+2]-key[2]; if (op[i] && dr*dr + dg*dg + db*db <= tol2) op[i] = 0; } }
+      if (bg === 'key'){ for (let i = 0; i < w*h; i++){ const dr = d[i*4]-key[0], dg = d[i*4+1]-key[1], db = d[i*4+2]-key[2]; if (op[i] && dr*dr + dg*dg + db*db <= tol2) op[i] = 0; } }
       else {
         const seeds = [];
         for (let x = 0; x < w; x++) seeds.push(x, (h-1)*w + x);
@@ -284,7 +288,7 @@ function preprocess(a){
         // "gaps" mode: background showing through closed gaps (between an arm and the body) is not connected
         // to the edge, so remove leftover background-colored patches bigger than a speck. Opt-in, because
         // white paint (spots, eye whites) looks the same as paper.
-        const seen = new Uint8Array(w*h), minArea = S.bg === 'gaps' ? w * h * 0.001 : Infinity;
+        const seen = new Uint8Array(w*h), minArea = bg === 'gaps' ? w * h * 0.001 : Infinity;
         const near = i => { const dr = d[i*4]-key[0], dg = d[i*4+1]-key[1], db = d[i*4+2]-key[2]; return dr*dr + dg*dg + db*db <= tol2; };
         for (let s = 0; s < w*h; s++){
           if (seen[s] || !op[s] || !near(s)) continue;
@@ -300,7 +304,7 @@ function preprocess(a){
   // line art: bare paper left inside the drawing. Fill it so the sprite gets real color, shading and an outline
   // instead of a white silhouette. "auto" only does this when most of the drawing is unpainted.
   let unpainted = 0, filledPaper = false;
-  if (S.bg === 'outlined' || S.bg === 'paper'){
+  if (bg === 'outlined' || bg === 'paper'){
     const minL = 255 - S.bgTol * 0.9, maxC = 25 + S.bgTol * 0.3, paperPx = []; let kept = 0;
     for (let i = 0; i < w*h; i++){ if (!op[i]) continue; kept++; if (lum(i) >= minL && chroma(i) < maxC) paperPx.push(i); }
     unpainted = kept ? paperPx.length / kept : 0;

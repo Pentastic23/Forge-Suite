@@ -30,7 +30,7 @@ export function assetToDoc(a){
   const edits = {}; for (const [N, m] of Object.entries(a.edits || {})) edits[N] = mapOut(m);
   const rig = {bones: a.rig.bones, snap: a.rig.snap !== false, labels: a.rig.labels ? rleOut(a.rig.labels) : null, mesh: a.rig.mesh || null};
   return {version: DOC_VERSION, edits, fedits, erasePts: a.erasePts || [], colorPts: a.colorPts || [], facing: a.facing || 'right',
-    rig, anims: a.anims, curAnim: a.curAnim, aiPrompt: a.aiPrompt || '', sample: !!a.sample};
+    rig, anims: a.anims, curAnim: a.curAnim, aiPrompt: a.aiPrompt || '', useAI: !!(a.useAI && a.aiSrc), sample: !!a.sample};
 }
 
 // rebuilds an editable sketch from what the project stored; ids stay the database's
@@ -52,6 +52,7 @@ export function docToAsset(id, name, src, doc){
   if (doc.anims.length) a.anims = doc.anims;
   a.curAnim = a.anims.some(x => x.id === doc.curAnim) ? doc.curAnim : a.anims[0].id;
   a.aiPrompt = doc.aiPrompt || '';
+  a.useAI = !!doc.useAI;   // the image itself is stored beside the sketch and attached on load
   a.sample = !!doc.sample;
   // new bones and animations must not reuse ids from what was loaded
   let max = 0;

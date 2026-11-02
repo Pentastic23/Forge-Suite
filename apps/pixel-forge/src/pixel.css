@@ -203,3 +203,13 @@ button.tl-h { cursor: pointer; }
 .export-run { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .export-done { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--forge-border); }
 .export-done p { margin: 4px 0; }
+
+/* AI coloring */
+.ai-key { margin: 8px 0; align-items: center; }
+.ai-result { margin-top: 12px; display: grid; gap: 8px; justify-items: start; }
+.ai-result .thumb-box { justify-self: stretch; }
+.ai-shot { width: 160px; height: 160px; }
+textarea.forge-input { resize: vertical; font: inherit; line-height: 1.4; }
+.ai-run { width: 100%; margin-top: 4px; }
+.ai-stack { display: grid; gap: 6px; margin: 10px 0 6px; }
+.ai-stack .hint { margin: 0; }
