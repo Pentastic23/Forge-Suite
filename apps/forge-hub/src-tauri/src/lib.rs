@@ -1,4 +1,5 @@
 mod activity;
+mod discover;
 mod launcher;
 mod paths;
 mod registry;
@@ -31,11 +32,17 @@ fn save_settings(settings: Settings) -> Result<(), String> {
 #[tauri::command]
 fn list_apps() -> ScanResult {
     let s = settings::load(&hub_dir());
-    let result = registry::scan(&s.app_folders);
+    let result = registry::scan(&discover::paths_of(&discover::search_folders(&s.app_folders)));
     for p in &result.problems {
         activity::log(&hub_dir(), Level::Warn, "hub", format!("Skipped {}: {}", p.path.display(), p.errors.join("; ")));
     }
     result
+}
+
+/// Every folder searched for apps: the ones from Settings, then the automatic ones.
+#[tauri::command]
+fn app_search_folders() -> Vec<discover::SearchFolder> {
+    discover::search_folders(&settings::load(&hub_dir()).app_folders)
 }
 
 #[tauri::command]
@@ -46,7 +53,7 @@ fn recent_apps() -> HashMap<String, u64> {
 #[tauri::command]
 fn launch_app(app: tauri::AppHandle, id: String, args: Option<Vec<String>>) -> Result<u32, String> {
     let s = settings::load(&hub_dir());
-    let scan = registry::scan(&s.app_folders);
+    let scan = registry::scan(&discover::paths_of(&discover::search_folders(&s.app_folders)));
     let found = scan.apps.iter().find(|a| a.manifest.id == id).ok_or_else(|| format!("No installed app with id \"{id}\""))?;
     let pid = launcher::launch(found, &hub_dir(), &forge_launch_guard::default_launch_dir(), &args.unwrap_or_default())?;
     if s.close_on_launch {
@@ -156,6 +163,7 @@ pub fn run() {
             read_logs,
             hub_paths,
             open_folder,
+            app_search_folders,
             projects_folder,
             set_projects_folder
         ])
