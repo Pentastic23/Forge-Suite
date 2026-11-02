@@ -1,0 +1,28 @@
+.hub {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  min-height: 100%;
+}
+.hub-head { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+.hub-head img { width: 64px; height: 64px; }
+.hub-head h1 { margin: 0; font-size: 24px; color: var(--forge-gold); }
+.hub-head p { margin: 2px 0 0; color: var(--forge-text-muted); }
+.hub-apps { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.hub-app {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border-radius: var(--forge-radius);
+  background: var(--forge-surface);
+  border: 1px solid var(--forge-border);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s var(--forge-ease), box-shadow 0.15s var(--forge-ease);
+}
+.hub-app:active, .hub-app:focus-visible { border-color: var(--forge-accent); box-shadow: var(--forge-glow); outline: none; }
+.hub-app img { width: 56px; height: 56px; flex: none; }
+.hub-app strong { display: block; font-size: 16px; margin-bottom: 3px; }
+.hub-app small { display: block; color: var(--forge-text-muted); font-size: 13px; line-height: 1.35; }
+.hub-note { margin-top: 22px; color: var(--forge-text-muted); font-size: 13px; line-height: 1.5; }

@@ -1,0 +1,115 @@
+# Builds Forge Suite for Android (every Forge app in one test app) as a signed APK.
+# Pull requests get the APK as a downloadable artifact. Pushes to main also put it
+# on the "android-test" pre-release, so this link always has the latest build:
+# https://github.com/Pentastic23/forge-suite/releases/download/android-test/ForgeSuite-test.apk
+name: Android test build
+
+on:
+  push:
+    branches: [main]
+    paths: ["apps/**", "packages/**", "crates/**", "brand/**", "Cargo.toml", "Cargo.lock", "package.json", "pnpm-lock.yaml", ".github/workflows/android.yml"]
+  pull_request:
+    paths: ["apps/**", "packages/**", "crates/**", "brand/**", "Cargo.toml", "Cargo.lock", "package.json", "pnpm-lock.yaml", ".github/workflows/android.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_DIR: apps/forge-suite-mobile
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: android
+
+      - name: Use the runner's Android NDK
+        run: |
+          echo "NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> "$GITHUB_ENV"
+          # Pixel Forge builds OpenSSL from source for Android, which needs these.
+          echo "ANDROID_NDK_ROOT=$ANDROID_NDK_LATEST_HOME" >> "$GITHUB_ENV"
+          echo "$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin" >> "$GITHUB_PATH"
+          echo "BUILD_TOOLS=$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)" >> "$GITHUB_ENV"
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Number this build so Android installs it as an update
+        working-directory: ${{ env.APP_DIR }}/src-tauri
+        run: |
+          jq --argjson code "${{ github.run_number }}" '.bundle.android.versionCode = $code' tauri.conf.json > conf.tmp
+          mv conf.tmp tauri.conf.json
+
+      - name: Make the Android project
+        working-directory: ${{ env.APP_DIR }}
+        run: pnpm tauri android init --ci
+
+      - name: Build the APK (64-bit ARM phones)
+        working-directory: ${{ env.APP_DIR }}
+        run: pnpm tauri android build --apk --target aarch64 --ci
+
+      - name: Sign the APK
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          apk=$(find "$APP_DIR/src-tauri/gen/android/app/build/outputs/apk" -name '*-release-unsigned.apk' | head -1)
+          test -n "$apk" || { echo "No unsigned APK was built"; exit 1; }
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/forge.keystore"
+            keystore="$RUNNER_TEMP/forge.keystore"; export KS_PASS="$KEYSTORE_PASSWORD"
+          else
+            # Test key from the repo (see apps/forge-suite-mobile/android/README.md).
+            keystore="$APP_DIR/android/forge-suite-test.keystore"; export KS_PASS=forgetest
+          fi
+          "$BUILD_TOOLS/zipalign" -p -f 4 "$apk" "$RUNNER_TEMP/aligned.apk"
+          "$BUILD_TOOLS/apksigner" sign --ks "$keystore" --ks-pass env:KS_PASS --ks-key-alias forge \
+            --out ForgeSuite-test.apk "$RUNNER_TEMP/aligned.apk"
+          "$BUILD_TOOLS/apksigner" verify ForgeSuite-test.apk
+          ls -lh ForgeSuite-test.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ForgeSuite-test-apk
+          path: ForgeSuite-test.apk
+          retention-days: 14
+
+      - name: Publish to the android-test pre-release
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git tag -f android-test "$GITHUB_SHA"
+          git push -f origin refs/tags/android-test
+          notes="Forge Suite for Android, test build ${{ github.run_number }} from commit ${GITHUB_SHA::7} ($(date -u '+%Y-%m-%d %H:%M UTC')).
+
+          Open this page on the phone and tap ForgeSuite-test.apk to install. The first time, Android asks you to allow installs from your browser. Each new build installs over the last one and keeps your projects."
+          if gh release view android-test >/dev/null 2>&1; then
+            gh release edit android-test --prerelease --title "Forge Suite for Android (test build)" --notes "$notes"
+          else
+            gh release create android-test --prerelease --title "Forge Suite for Android (test build)" --notes "$notes"
+          fi
+          gh release upload android-test ForgeSuite-test.apk --clobber

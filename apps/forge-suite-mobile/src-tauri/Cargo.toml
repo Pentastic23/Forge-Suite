@@ -1,0 +1,23 @@
+[package]
+name = "forge-suite-mobile"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+description = "Forge Suite mobile: every Forge app in one Android app, for testing"
+
+[lib]
+name = "forge_suite_mobile_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["protocol-asset"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2"
+forge-paths = { path = "../../../crates/forge-paths" }
+forge-core = { path = "../../forge-core/src-tauri" }
+balance-forge = { path = "../../balance-forge/src-tauri" }
+asset-forge = { path = "../../asset-forge/src-tauri" }
+pixel-forge = { path = "../../pixel-forge/src-tauri" }
