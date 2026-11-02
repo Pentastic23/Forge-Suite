@@ -8,3 +8,8 @@ export function suiteCommand(cmd: string): string {
   const plugin = (globalThis as { __FORGE_PLUGIN__?: string }).__FORGE_PLUGIN__;
   return plugin ? `plugin:${plugin}|${cmd}` : cmd;
 }
+
+/** True inside Forge Suite for Android, where each app runs as a page of one app. */
+export function insideSuiteMobile(): boolean {
+  return Boolean((globalThis as { __FORGE_PLUGIN__?: string }).__FORGE_PLUGIN__);
+}

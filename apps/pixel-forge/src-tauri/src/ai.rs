@@ -1,8 +1,9 @@
 //! Optional AI coloring through OpenAI's image API, as in Sprite Foundry.
 //!
 //! It is off until the person adds their own API key. The key is kept in the
-//! Windows Credential Manager (encrypted for this Windows user), is never sent
-//! back to the window, and only ever goes to api.openai.com.
+//! Windows Credential Manager (encrypted for this Windows user), or on Android
+//! in the app's private storage. It is never sent back to the window, and only
+//! ever goes to api.openai.com.
 
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -14,9 +15,6 @@ pub const SIZES: [&str; 3] = ["1024x1024", "1024x1536", "1536x1024"];
 pub const QUALITIES: [&str; 3] = ["low", "medium", "high"];
 pub const DEFAULT_MODEL: &str = "gpt-image-1";
 
-fn entry() -> Result<keyring::Entry, String> {
-    keyring::Entry::new(SERVICE, ACCOUNT).map_err(|e| format!("Windows couldn't open its credential store: {e}"))
-}
 
 /// OpenAI keys start with "sk-" and are long; this catches pasting the wrong thing.
 pub fn looks_like_key(key: &str) -> bool {
@@ -28,7 +26,7 @@ pub fn has_key() -> bool {
 }
 
 fn read_key() -> Option<String> {
-    entry().ok()?.get_password().ok().filter(|k| !k.is_empty())
+    key_store::read().filter(|k| !k.is_empty())
 }
 
 pub fn set_key(key: &str) -> Result<(), String> {
@@ -36,13 +34,70 @@ pub fn set_key(key: &str) -> Result<(), String> {
     if !looks_like_key(key) {
         return Err("That doesn't look like an OpenAI API key (they start with \"sk-\")".into());
     }
-    entry()?.set_password(key).map_err(|e| format!("Windows couldn't save the key: {e}"))
+    key_store::save(key)
 }
 
 pub fn clear_key() -> Result<(), String> {
-    match entry()?.delete_credential() {
-        Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
-        Err(e) => Err(format!("Windows couldn't remove the key: {e}")),
+    key_store::clear()
+}
+
+/// Desktop: the Windows Credential Manager.
+#[cfg(not(target_os = "android"))]
+mod key_store {
+    use super::{ACCOUNT, SERVICE};
+
+    fn entry() -> Result<keyring::Entry, String> {
+        keyring::Entry::new(SERVICE, ACCOUNT).map_err(|e| format!("Windows couldn't open its credential store: {e}"))
+    }
+
+    pub fn read() -> Option<String> {
+        entry().ok()?.get_password().ok()
+    }
+
+    pub fn save(key: &str) -> Result<(), String> {
+        entry()?.set_password(key).map_err(|e| format!("Windows couldn't save the key: {e}"))
+    }
+
+    pub fn clear() -> Result<(), String> {
+        match entry()?.delete_credential() {
+            Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
+            Err(e) => Err(format!("Windows couldn't remove the key: {e}")),
+        }
+    }
+}
+
+/// Android (Forge Suite for Android): a file in the app's private storage,
+/// which other apps can't read. There is no credential store to use instead.
+#[cfg(target_os = "android")]
+mod key_store {
+    use std::fs;
+    use std::io::Write;
+    use std::os::unix::fs::OpenOptionsExt;
+    use std::path::PathBuf;
+
+    fn path() -> PathBuf {
+        dirs::data_local_dir().unwrap_or_else(std::env::temp_dir).join("ForgeSuite").join("pixel-forge").join("openai-key")
+    }
+
+    pub fn read() -> Option<String> {
+        fs::read_to_string(path()).ok().map(|k| k.trim().to_string())
+    }
+
+    pub fn save(key: &str) -> Result<(), String> {
+        let path = path();
+        let fail = |e: std::io::Error| format!("Couldn't save the key: {e}");
+        if let Some(dir) = path.parent() {
+            fs::create_dir_all(dir).map_err(fail)?;
+        }
+        let mut file = fs::OpenOptions::new().write(true).create(true).truncate(true).mode(0o600).open(&path).map_err(fail)?;
+        file.write_all(key.as_bytes()).map_err(fail)
+    }
+
+    pub fn clear() -> Result<(), String> {
+        match fs::remove_file(path()) {
+            Err(e) if e.kind() != std::io::ErrorKind::NotFound => Err(format!("Couldn't remove the key: {e}")),
+            _ => Ok(()),
+        }
     }
 }
 

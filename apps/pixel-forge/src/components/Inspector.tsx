@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ask, open, save } from "@tauri-apps/plugin-dialog";
-import { Badge, Button } from "@forge/ui";
+import { Badge, Button, insideSuiteMobile } from "@forge/ui";
 import * as E from "../engine/editor";
 import type { Display } from "../engine/editor";
 import { analyzeStyle, applyTheme, applyTrained, isTheme, snapshotTheme, spritesFromImage, type Sprite, type StyleReport } from "../engine/style";
@@ -171,7 +171,7 @@ function OpenAIOptions(props: { notify: Notify }) {
   const p = ai.prefs;
   const [key, setKey] = useState("");
   const addKey = async () => {
-    try { await saveKey(key); setKey(""); notify("API key saved in Windows Credential Manager on this PC"); } catch (e) { notify(errorText(e), true); }
+    try { await saveKey(key); setKey(""); notify(insideSuiteMobile() ? "API key saved on this phone" : "API key saved in Windows Credential Manager on this PC"); } catch (e) { notify(errorText(e), true); }
   };
   const dropKey = async () => {
     try { await removeKey(); notify("API key removed from this PC"); } catch (e) { notify(errorText(e), true); }
@@ -185,7 +185,7 @@ function OpenAIOptions(props: { notify: Notify }) {
             onChange={(e) => setKey(e.target.value)} onKeyDown={(e) => e.key === "Enter" && key.trim() && void addKey()} style={{ flex: 1, minWidth: 0 }} />
           <Button onClick={() => void addKey()} disabled={!key.trim()}>Save key</Button>
         </div>
-        <Hint>Kept in Windows Credential Manager on this PC, never in the project file. It's only ever sent to OpenAI.</Hint>
+        <Hint>{insideSuiteMobile() ? "Kept in this app's private storage on the phone" : "Kept in Windows Credential Manager on this PC"}, never in the project file. It's only ever sent to OpenAI.</Hint>
       </div>
     )}
     {ai.hasKey && (
