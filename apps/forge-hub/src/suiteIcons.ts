@@ -1,3 +1,4 @@
+import aiForge from "../../../brand/ai-forge-logo-256.png";
 import assetForge from "../../../brand/asset-forge-logo-256.png";
 import balanceForge from "../../../brand/balance-forge-logo-256.png";
 import forgeCore from "../../../brand/forge-core-logo-256.png";
@@ -9,6 +10,7 @@ import pixelForge from "../../../brand/pixel-forge-logo-256.png";
  * show the current brand icon, even when an install has no icon.png beside it.
  */
 export const SUITE_ICONS: Record<string, string> = {
+  "ai-forge": aiForge,
   "asset-forge": assetForge,
   "balance-forge": balanceForge,
   "forge-core": forgeCore,

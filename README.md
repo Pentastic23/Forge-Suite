@@ -9,6 +9,7 @@ Desktop tools for indie game developers, opened from one launcher.
 | **Balance Forge** | Balancing, analysis and simulation of game systems. | First version |
 | **Asset Forge** | Asset library, production tracking, checks and engine export. | First version |
 | **Pixel Forge** | Sketch-to-pixel-art, rigging, animation and engine export. | First version |
+| **AI Forge** | AI assistant for game dev: code, design and lore help, art from a prompt, 3D models. | First version |
 
 The full plan is in the Forge Suite Blueprint doc.
 
@@ -17,7 +18,9 @@ The full plan is in the Forge Suite Blueprint doc.
 - Every app opens only through Forge Hub, which hands it a single-use launch key.
 - Apps never depend on each other. They share work by exporting and importing files
   (`.forgecodex`, `.forgebalance`, `.forgeasset`).
-- Only Pixel Forge generates content. The other apps organise, analyse and validate.
+- Only Pixel Forge and AI Forge generate content. The other apps organise, analyse and validate.
+  AI generation is always optional, uses the person's own keys or local servers, and is off
+  until they set it up.
 
 ## Repo layout
 
@@ -27,6 +30,7 @@ apps/forge-core/       Forge Core, the Game Development Codex
 apps/balance-forge/    Balance Forge, stat sheets, charts and simulations
 apps/asset-forge/      Asset Forge, the asset library, checks and engine export
 apps/pixel-forge/      Pixel Forge, sketches to pixel art, rigging, animation and export
+apps/ai-forge/         AI Forge, the AI assistant: chat, art from a prompt and 3D models
 apps/forge-suite-mobile/ Forge Suite for Android: every app in one test app
 packages/ui/           Shared React components and theme
 packages/formats/      Shared file formats (app manifest, exchange files)
@@ -210,13 +214,51 @@ until you turn it on and add your own key.
   - For trying the panel without either, a development build started with
     `PIXELFORGE_AI_MOCK=1` returns the sketch itself instead.
 
+## AI Forge
+
+```
+pnpm ai:dev          # needs FORGE_DEV=1 outside Forge Hub, as above
+pnpm ai:build
+```
+
+Each project is one `.aiforge` file (SQLite) in the projects folder. AI Forge is an assistant for
+making games; every AI service in it is optional and paid by you, or runs on your own PC.
+
+- **Assistant.** Chats for general help, code, game design, story and lore, 2D art, 3D and review,
+  each with its own instructions. Every chat is sent with the project brief (game name, genre,
+  engine, art style, notes) and, if you import one, the `.forgecodex` from Forge Core, so answers
+  use your game's own mobs, items and quests. Answers stream in as they are written; code blocks
+  have Copy and Save, and image or 3D prompts have "Make image" and "Make 3D model". Edit a
+  question or try an answer again; pin chats; save a chat as Markdown. Settings shows exactly
+  what is sent.
+  - **Claude** (Anthropic API, your key): Opus 5.5 by default, or Sonnet 5.5, Haiku 5.5 or
+    Fable 5.1, with an effort setting.
+  - **OpenAI** (your key): any chat model your account has.
+  - **A local model** on this PC through Ollama or LM Studio (any OpenAI-compatible server). No
+    key, nothing leaves the PC. Both run on AMD cards through Vulkan.
+- **Images.** Art from a prompt: sprites, icons, seamless tiles, concept art, backgrounds,
+  portraits and UI, optionally in the game's art style, up to four at a time. "Improve prompt"
+  has the chat model add detail. Made with OpenAI's image API (`gpt-image-1`, transparent
+  backgrounds for sprites and icons) or your own ComfyUI (built-in text-to-image workflow, or
+  your own API-format workflow with `%PROMPT%` in it).
+- **3D models.** Meshy (your key) makes a model from a description (a quick untextured preview
+  first, then "Add textures") or from a picture. Tasks keep running if you leave the page or
+  close the app. Models land in the library as GLB with a preview, and open in a 3D viewer
+  (turn, zoom, wireframe, triangle count). The 3D chat also writes Blender Python scripts.
+- **Library.** Every image and model, with folders, tags, favourites and search. Save PNGs for
+  Pixel Forge or Asset Forge and GLBs for Blender, Godot, Unity or Unreal; add your own files.
+- **Keys.** Anthropic, OpenAI and Meshy keys are kept in Windows Credential Manager (service
+  `ForgeSuite.AIForge`), never in the project, and each only goes to its own service.
+- For trying it without any service, a development build started with `AIFORGE_AI_MOCK=1`
+  answers chats with a sample, makes test images and a cube model, and sends nothing.
+
 ## Example projects
 
 Each app's start screen has **Open example**, which opens Emberfall, a small made-up game, in
 that app: linked codex entries in Forge Core, stat sheets and simulations in Balance Forge, an
-asset library with checks and production slots in Asset Forge, and rigged, animated sketches in
-Pixel Forge. They are built from one shared file, so the ids line up across apps. See
-`examples/emberfall/README.md`.
+asset library with checks and production slots in Asset Forge, rigged, animated sketches in
+Pixel Forge, and a brief, codex and finished chats in AI Forge. They are built from one shared
+file, so the ids line up across apps. See `examples/emberfall/README.md`.
 
 ## Projects folder
 
@@ -228,7 +270,7 @@ can lock a project while it is open.
 
 ## Forge Suite for Android (test builds)
 
-`apps/forge-suite-mobile/` puts Forge Core, Balance Forge, Asset Forge and Pixel Forge into
+`apps/forge-suite-mobile/` puts Forge Core, Balance Forge, Asset Forge, Pixel Forge and AI Forge into
 one Android app, for trying them on a phone. Its first screen lists the apps; each app opens
 on its own page, zoomed out to fit its desktop layout (turn the phone sideways for a bigger
 view), with a round button in the corner to get back. Each app's Rust commands are loaded as

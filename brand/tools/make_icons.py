@@ -21,7 +21,7 @@ from scipy import ndimage
 
 ROOT = Path(__file__).resolve().parents[2]
 BRAND = ROOT / "brand"
-APPS = ["forge-hub", "forge-core", "balance-forge", "asset-forge", "pixel-forge"]
+APPS = ["forge-hub", "forge-core", "balance-forge", "asset-forge", "pixel-forge", "ai-forge"]
 
 ICO_SIZES = [16, 20, 24, 32, 40, 48, 64, 96, 128, 256]
 ICNS_SIZES = [16, 32, 64, 128, 256, 512, 1024]

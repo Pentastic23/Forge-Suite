@@ -2,7 +2,7 @@ use std::fs;
 use tauri_build::{Attributes, DefaultPermissionRule, InlinedPlugin};
 
 /// The apps whose commands are registered as plugins, named after their app id.
-const APPS: [&str; 4] = ["forge-core", "balance-forge", "asset-forge", "pixel-forge"];
+const APPS: [&str; 5] = ["forge-core", "balance-forge", "asset-forge", "pixel-forge", "ai-forge"];
 
 /// Reads an app's command names from the `commands!` list in its lib.rs, so the
 /// permissions here always match the commands the app registers.

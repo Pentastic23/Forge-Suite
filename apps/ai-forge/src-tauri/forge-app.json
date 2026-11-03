@@ -1,0 +1,14 @@
+{
+  "id": "ai-forge",
+  "name": "AI Forge",
+  "version": "0.1.0",
+  "executable": "AI Forge.exe",
+  "description": "An AI assistant for game development: help with code, design and lore, art from a prompt and 3D models, with your own AI keys or a local model.",
+  "category": "creation",
+  "icon": "icon.png",
+  "tags": ["ai", "assistant", "coding", "art", "3d"],
+  "opens": [".aiforge"],
+  "updateSource": "https://github.com/Pentastic23/forge-suite/releases",
+  "channel": "stable",
+  "accent": "#A78BFA"
+}

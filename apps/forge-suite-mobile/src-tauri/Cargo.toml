@@ -21,3 +21,4 @@ forge-core = { path = "../../forge-core/src-tauri" }
 balance-forge = { path = "../../balance-forge/src-tauri" }
 asset-forge = { path = "../../asset-forge/src-tauri" }
 pixel-forge = { path = "../../pixel-forge/src-tauri" }
+ai-forge = { path = "../../ai-forge/src-tauri" }

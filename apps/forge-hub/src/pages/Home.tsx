@@ -10,6 +10,7 @@ const EXAMPLE_TOUR: { id: string; name: string; what: string }[] = [
   { id: "balance-forge", name: "Balance Forge", what: "The same mobs and items as stat sheets with formulas, a weapons sheet with two outliers, a patch to compare and an economy to simulate." },
   { id: "asset-forge", name: "Asset Forge", what: "Sprites, icons, sounds and music for those entries, a few problems for Checks to find, and production slots to finish." },
   { id: "pixel-forge", name: "Pixel Forge", what: "Sketches of the hero, the enemies, an effect and an item, rigged and animated, ready to export." },
+  { id: "ai-forge", name: "AI Forge", what: "The game brief and codex for the assistant, finished chats about the bat's code, a mini-boss and an icon prompt, and a library to try." },
 ];
 
 export function Home(props: {

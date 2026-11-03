@@ -117,7 +117,7 @@ struct ProjectsFolder {
 }
 
 fn count_projects(dir: &std::path::Path) -> usize {
-    const EXTS: [&str; 4] = ["forgecore", "balanceforge", "assetforge", "pixelforge"];
+    const EXTS: [&str; 5] = ["forgecore", "balanceforge", "assetforge", "pixelforge", "aiforge"];
     std::fs::read_dir(dir)
         .map(|it| it.flatten().filter(|e| e.path().extension().and_then(|x| x.to_str()).is_some_and(|x| EXTS.contains(&x.to_lowercase().as_str()))).count())
         .unwrap_or(0)

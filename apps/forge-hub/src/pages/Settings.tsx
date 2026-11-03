@@ -24,7 +24,7 @@ function ProjectsFolderCard(props: { notify: (msg: string, bad?: boolean) => voi
     <Card>
       <div className="settings-row" style={{ display: "block", borderBottom: 0 }}>
         <div>Projects folder</div>
-        <div className="hint">Forge Core, Balance Forge and Asset Forge create and list their project files here. Pick a folder that isn't synced by OneDrive, since syncing can lock a project while it's open.</div>
+        <div className="hint">Every Forge app creates and list their project files here. Pick a folder that isn't synced by OneDrive, since syncing can lock a project while it's open.</div>
         <div className="folder-list">
           <div className="row">
             <code title={pf.path}>{pf.path}</code>

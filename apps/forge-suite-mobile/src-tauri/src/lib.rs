@@ -1,4 +1,4 @@
-//! Forge Suite mobile: Forge Core, Balance Forge, Asset Forge and Pixel Forge
+//! Forge Suite mobile: Forge Core, Balance Forge, Asset Forge, Pixel Forge and AI Forge
 //! in one Android app, for testing on a phone.
 //!
 //! On desktop each app is its own program that Forge Hub starts with a launch
@@ -15,6 +15,7 @@ pub fn run() {
         .plugin(balance_forge_lib::plugin())
         .plugin(asset_forge_lib::plugin())
         .plugin(pixel_forge_lib::plugin())
+        .plugin(ai_forge_lib::plugin())
         .setup(|app| {
             keep_files_in_app(app)?;
             Ok(())

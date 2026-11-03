@@ -8,12 +8,14 @@ import coreLogo from "../../../brand/forge-core-logo-256.png";
 import balanceLogo from "../../../brand/balance-forge-logo-256.png";
 import assetLogo from "../../../brand/asset-forge-logo-256.png";
 import pixelLogo from "../../../brand/pixel-forge-logo-256.png";
+import aiLogo from "../../../brand/ai-forge-logo-256.png";
 
 const LOGOS: Record<string, string> = {
   "forge-core": coreLogo,
   "balance-forge": balanceLogo,
   "asset-forge": assetLogo,
   "pixel-forge": pixelLogo,
+  "ai-forge": aiLogo,
 };
 
 function Hub() {

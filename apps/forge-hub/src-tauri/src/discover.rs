@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 use crate::paths;
 
 /// Product names of the suite's apps, as their installers name their folders.
-const SUITE_PRODUCTS: [&str; 4] = ["Forge Core", "Balance Forge", "Asset Forge", "Pixel Forge"];
+const SUITE_PRODUCTS: [&str; 5] = ["Forge Core", "Balance Forge", "Asset Forge", "Pixel Forge", "AI Forge"];
 
 /// Folders people keep the suite in by hand.
 const WELL_KNOWN_ROOTS: [&str; 3] = ["C:\\Forge Hub", "D:\\Forge Hub", "E:\\Forge Hub"];
@@ -111,7 +111,7 @@ pub fn find_apps(from_settings: &[PathBuf]) -> crate::registry::ScanResult {
     result
 }
 
-const SUITE_IDS: [&str; 4] = ["forge-core", "balance-forge", "asset-forge", "pixel-forge"];
+const SUITE_IDS: [&str; 5] = ["forge-core", "balance-forge", "asset-forge", "pixel-forge", "ai-forge"];
 
 /// Folders from Settings first (they win on ties), then the automatic ones.
 pub fn search_folders(from_settings: &[PathBuf]) -> Vec<SearchFolder> {
