@@ -2,7 +2,7 @@
   "name": "forge-suite",
   "private": true,
   "version": "0.1.0",
-  "description": "Forge Suite: Forge Hub launcher plus Forge Core, Balance Forge, Asset Forge and Pixel Forge.",
+  "description": "Forge Suite: Forge Hub launcher plus Forge Core, Balance Forge, Asset Forge, Pixel Forge and AI Forge.",
   "packageManager": "pnpm@10.28.0",
   "scripts": {
     "hub:dev": "pnpm --filter forge-hub tauri dev",
@@ -15,6 +15,8 @@
     "asset:build": "pnpm --filter asset-forge tauri build",
     "pixel:dev": "pnpm --filter pixel-forge tauri dev",
     "pixel:build": "pnpm --filter pixel-forge tauri build",
+    "ai:dev": "pnpm --filter ai-forge tauri dev",
+    "ai:build": "pnpm --filter ai-forge tauri build",
     "android:dev": "pnpm --filter forge-suite-mobile tauri android dev",
     "android:build": "pnpm --filter forge-suite-mobile tauri android build --apk --target aarch64",
     "typecheck": "pnpm -r typecheck",

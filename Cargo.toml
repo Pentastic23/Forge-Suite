@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/launch-guard", "crates/forge-paths", "crates/forge-formula", "apps/forge-hub/src-tauri", "apps/forge-core/src-tauri", "apps/balance-forge/src-tauri", "apps/asset-forge/src-tauri", "apps/pixel-forge/src-tauri", "apps/forge-suite-mobile/src-tauri"]
+members = ["crates/launch-guard", "crates/forge-paths", "crates/forge-formula", "apps/forge-hub/src-tauri", "apps/forge-core/src-tauri", "apps/balance-forge/src-tauri", "apps/asset-forge/src-tauri", "apps/pixel-forge/src-tauri", "apps/ai-forge/src-tauri", "apps/forge-suite-mobile/src-tauri"]
 
 [workspace.package]
 edition = "2021"

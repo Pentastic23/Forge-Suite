@@ -30,6 +30,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "ai-forge"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "dirs 5.0.1",
+ "forge-launch-guard",
+ "forge-paths",
+ "keyring",
+ "reqwest",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-dialog",
+ "tauri-plugin-opener",
+ "tempfile",
+ "uuid",
+ "zip",
+]
+
+[[package]]
 name = "alloc-no-stdlib"
 version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1253,6 +1275,7 @@ dependencies = [
 name = "forge-suite-mobile"
 version = "0.1.0"
 dependencies = [
+ "ai-forge",
  "asset-forge",
  "balance-forge",
  "forge-core",

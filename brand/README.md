@@ -13,3 +13,7 @@ To rebuild everything after changing an original:
 pip install pillow numpy scipy
 python brand/tools/make_icons.py
 ```
+
+AI Forge's original is drawn by code in the same pixel style (`tools/draw_ai_forge.py`, a
+violet chip with a spark on the anvil inside the gold hexagon). Run it before `make_icons.py`
+after changing the drawing.
