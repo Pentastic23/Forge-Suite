@@ -96,15 +96,25 @@ export async function removeKey() {
 }
 
 // ---------------------------------------------------------------- ComfyUI
-/** Asks ComfyUI for its checkpoints; picks the first one if none was chosen. Returns the message to show. */
-export async function connectComfy(): Promise<string> {
+/** Is this address on this PC? Anything else means sketches go to another computer. */
+export function isLocalAddress(url: string): boolean {
+  const u = url.trim().includes("://") ? url.trim() : `http://${url.trim()}`;
   try {
-    const info = await api.comfyInfo(ai.prefs.comfyUrl);
-    ai.comfy = { checked: true, checkpoints: info.checkpoints, error: "" };
+    const host = new URL(u).hostname.replace(/^\[|\]$/g, "").toLowerCase();
+    return host === "localhost" || host === "::1" || /^127\./.test(host);
+  } catch { return false; }
+}
+
+/**
+ * Asks ComfyUI at `url` (the saved address when left out) for its checkpoints. The address is saved
+ * only when ComfyUI answers, so a mistyped or autofilled address never sticks. Returns the message to show.
+ */
+export async function connectComfy(url = ai.prefs.comfyUrl): Promise<string> {
+  try {
+    const info = await api.comfyInfo(url.trim() || DEFAULT_COMFY_URL);
     const keep = info.checkpoints.includes(ai.prefs.checkpoint);
     await setAIPrefs({ comfyUrl: info.url, ...(keep ? {} : { checkpoint: info.checkpoints[0] ?? "" }) });
-    ai.comfy.checked = true; // setAIPrefs clears it when the address was tidied
-    ai.comfy.checkpoints = info.checkpoints;
+    ai.comfy = { checked: true, checkpoints: info.checkpoints, error: "" };
     E.emit();
     return info.checkpoints.length
       ? `Connected to ComfyUI: ${info.checkpoints.length} checkpoint${info.checkpoints.length === 1 ? "" : "s"}`

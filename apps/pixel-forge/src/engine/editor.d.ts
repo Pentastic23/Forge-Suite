@@ -123,6 +123,7 @@ export { MATERIALS, SIZES, STYLES, S, P, assets, hex, PRESET_ANIMS, PRESET_ORDER
 
 // AI coloring
 export function buildAIPrompt(user?: string): string;
+export function cleanedImage(a: Asset): ImageData;
 export function buildLocalPrompt(user?: string): { positive: string; negative: string };
 export function aiSizeFor(a: Asset): "1024x1024" | "1024x1536" | "1536x1024";
 export function setAIImage(a: Asset, im: ImageData | null): void;

@@ -12,7 +12,7 @@ import { meta } from "../project";
 import type { Notify } from "../App";
 import { useEditor } from "../useEditor";
 import { Check, Color, Hint, Pick, Range, Section, Seg } from "./controls";
-import { ai, colorWithAI, connectComfy, DEFAULT_COMFY_URL, discardAI, QUALITIES, readyProblem, removeKey, saveKey, setAIPrefs, SIZES as AI_SIZES, stopComfy } from "../ai";
+import { ai, colorWithAI, connectComfy, DEFAULT_COMFY_URL, discardAI, isLocalAddress, QUALITIES, readyProblem, removeKey, saveKey, setAIPrefs, SIZES as AI_SIZES, stopComfy } from "../ai";
 import type { Asset } from "../engine/core";
 import { SpriteCanvas } from "./SpriteView";
 
@@ -213,12 +213,15 @@ function ComfyOptions(props: { notify: Notify }) {
   const p = ai.prefs;
   const c = ai.comfy;
   const [connecting, setConnecting] = useState(false);
+  const [address, setAddress] = useState(p.comfyUrl);
+  useEffect(() => setAddress(p.comfyUrl), [p.comfyUrl]);
   const fail = (e: unknown) => notify(errorText(e), true);
-  const connect = async () => {
+  const connect = async (url = address) => {
     setConnecting(true);
-    try { notify(await connectComfy()); } catch (e) { fail(e); }
+    try { notify(await connectComfy(url)); } catch (e) { fail(e); }
     setConnecting(false);
   };
+  const remote = !isLocalAddress(p.comfyUrl);
   const pickWorkflow = async () => {
     const path = await open({ multiple: false, title: "ComfyUI workflow (API format)", filters: [{ name: "ComfyUI workflow", extensions: ["json"] }] });
     if (typeof path !== "string") return;
@@ -236,13 +239,18 @@ function ComfyOptions(props: { notify: Notify }) {
     <div className="ai-stack">
       <label htmlFor="comfyUrl" className="muted small">ComfyUI address</label>
       <div className="row-wrap">
-        <input id="comfyUrl" className="forge-input" key={p.comfyUrl} defaultValue={p.comfyUrl} spellCheck={false} placeholder={DEFAULT_COMFY_URL} style={{ flex: 1, minWidth: 0 }}
-          onBlur={(e) => e.target.value.trim() !== p.comfyUrl && void setAIPrefs({ comfyUrl: e.target.value })}
-          onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()} />
-        <Button onClick={() => void connect()} disabled={connecting}>{connecting ? "Connecting…" : c.checked && !c.error ? "Refresh" : "Connect"}</Button>
+        <input id="comfyUrl" className="forge-input" value={address} spellCheck={false} autoComplete="off" placeholder={DEFAULT_COMFY_URL} style={{ flex: 1, minWidth: 0 }}
+          onChange={(e) => setAddress(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !connecting && void connect()} />
+        <Button onClick={() => void connect()} disabled={connecting}>{connecting ? "Connecting…" : c.checked && !c.error && address === p.comfyUrl ? "Refresh" : "Connect"}</Button>
       </div>
       {c.checked && !c.error && <span className="muted small">Connected · {c.checkpoints.length} checkpoint{c.checkpoints.length === 1 ? "" : "s"}</span>}
-      {!c.checked && <Hint>Start ComfyUI first. On AMD cards like the RX 5700 XT, start it with <span className="mono">--directml</span>.</Hint>}
+      {remote && (
+        <div className="ai-remote">
+          <Hint>{p.comfyUrl} isn't this PC, so your sketches are sent to that computer.</Hint>
+          <Button variant="ghost" onClick={() => { setAddress(DEFAULT_COMFY_URL); void connect(DEFAULT_COMFY_URL); }}>Use this PC</Button>
+        </div>
+      )}
+      {!c.checked && !remote && <Hint>Start ComfyUI first (ComfyUI Desktop or your own install), then Connect. Its usual address is {DEFAULT_COMFY_URL}.</Hint>}
     </div>
     {!p.workflow && <>
       <div className="ctl">

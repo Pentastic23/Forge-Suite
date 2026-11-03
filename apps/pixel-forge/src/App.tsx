@@ -8,6 +8,7 @@ import { assets, setToast } from "./engine/editor";
 import { hasUnsaved, loadProject, saveNow } from "./project";
 import { useEditor } from "./useEditor";
 import { StudioPage } from "./pages/StudioPage";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { LibraryPage } from "./pages/LibraryPage";
 import { ExportPage } from "./pages/ExportPage";
 import { ActivityPage } from "./pages/ActivityPage";
@@ -105,12 +106,12 @@ function Workspace(props: { project: CurrentProject; onProject: (p: CurrentProje
   return (
     <AppShell brand={{ name: "Pixel Forge", logo }} nav={nav} current={page} onNavigate={setPage} header={header}>
       {!loaded ? <p className="muted">Opening project…</p> : (
-        <>
+        <ErrorBoundary resetKey={page}>
           {page === "studio" && <StudioPage notify={notify} onNavigate={setPage} />}
           {page === "library" && <LibraryPage notify={notify} onOpen={() => setPage("studio")} />}
           {page === "export" && <ExportPage notify={notify} projectName={project.info.name} />}
           {page === "activity" && <ActivityPage notify={notify} />}
-        </>
+        </ErrorBoundary>
       )}
     </AppShell>
   );

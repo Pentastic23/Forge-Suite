@@ -175,6 +175,18 @@ describe("AI coloring", async () => {
     expect(filled).toBeGreaterThan(32 * 32 * 0.15);
     expect(filled).toBeLessThan(32 * 32 * 0.8);
   });
+  it("shows an AI version that is a different size from the sketch", () => {
+    const a = C.newAsset("resized", sketch());          // 120 x 180
+    const big = new ImageData(96, 128);                  // ComfyUI sends its own size back
+    for (let i = 0; i < big.data.length; i += 4) big.data.set([250, 250, 248, 255], i);
+    for (let y = 20; y < 110; y++) for (let x = 30; x < 66; x++) big.data.set([40, 120, 70, 255], (y * 96 + x) * 4);
+    Ed.setAIImage(a, big);
+    const im = Ed.cleanedImage(a);
+    expect([im.width, im.height]).toEqual([96, 128]);
+    Ed.chooseAI(false);
+    a.useAI = false;
+    expect([Ed.cleanedImage(a).width, Ed.cleanedImage(a).height]).toEqual([120, 180]);
+  });
   it("switches between the AI version and the sketch, and remembers the choice", () => {
     const a = C.newAsset("knight", sketch());
     const before = C.preKey(a);
