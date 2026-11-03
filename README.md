@@ -205,8 +205,9 @@ until you turn it on and add your own key.
     never in the project, and only sent to OpenAI. Each run sends the sketch and your prompt to
     OpenAI's image edit API (`gpt-image-1` by default) and is billed to your account.
   - **ComfyUI (this PC).** Start [ComfyUI](https://github.com/comfyanonymous/ComfyUI) yourself
-    (on AMD cards like the RX 5700 XT, `python main.py --directml`), put a Stable Diffusion
-    checkpoint in its `models/checkpoints` folder, then press Connect. The built-in workflow is
+    (ComfyUI Desktop, or your own install), put a Stable Diffusion checkpoint in its
+    `models/checkpoints` folder, then press Connect. The address is saved only once ComfyUI
+    answers, and Pixel Forge warns when it points at another computer. The built-in workflow is
     image to image with that checkpoint; "Change" sets how far it may move from your drawing.
     You can use your own workflow instead: save it from ComfyUI with "Save (API format)" and put
     `%SKETCH%` where the image goes (Pixel Forge also fills `%PROMPT%`, `%NEGATIVE%`,

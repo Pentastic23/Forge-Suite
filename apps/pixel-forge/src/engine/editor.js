@@ -100,12 +100,14 @@ export function drawIdx(cv, idx, N, zoom, grid, onion, pal){
   }
 }
 // the sketch itself (or its cleaned version), fitted into a square
+// the sketch after background removal; it is made from the AI version when that is in use,
+// which can be a different size from the sketch
+export function cleanedImage(a){ const pre = preprocess(a); return new ImageData(pre.d, pre.w, pre.h); }
 export function drawThumb(a, cv, size, cleaned){
   cv.width = size; cv.height = size; const g = cv.getContext('2d'); g.clearRect(0, 0, size, size);
-  if (cleaned) preprocess(a);
-  const w = a.src.width, h = a.src.height;
+  const im = cleaned ? cleanedImage(a) : a.src, w = im.width, h = im.height;
   const t = document.createElement('canvas'); t.width = w; t.height = h;
-  t.getContext('2d').putImageData(cleaned && a.pre ? new ImageData(a.pre.d, w, h) : a.src, 0, 0);
+  t.getContext('2d').putImageData(im, 0, 0);
   const s = Math.min(size / w, size / h), ox = (size - w * s) / 2, oy = (size - h * s) / 2; g.imageSmoothingEnabled = true;
   g.drawImage(t, ox, oy, w * s, h * s);
   cv._map = {s, ox, oy, w, h};

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanPrefs, readyProblem, ai } from "./ai";
+import { cleanPrefs, readyProblem, ai, isLocalAddress } from "./ai";
 
 describe("AI settings", () => {
   it("starts off, on OpenAI, with safe defaults", () => {
@@ -24,5 +24,12 @@ describe("AI settings", () => {
     expect(readyProblem()).toBe("");
     ai.prefs = cleanPrefs({ on: true, backend: "comfy", workflow: { "1": {} } });
     expect(readyProblem()).toBe("");
+  });
+});
+
+describe("ComfyUI address", () => {
+  it("knows which addresses are this PC", () => {
+    for (const u of ["http://127.0.0.1:8188", "127.0.0.1:8188", "http://localhost:8000", "http://[::1]:8188", "HTTP://LOCALHOST"]) expect(isLocalAddress(u)).toBe(true);
+    for (const u of ["http://73.2.124.3:27015", "http://192.168.1.20:8188", "gpu-box.local:8188", "", "not a url at all"]) expect(isLocalAddress(u)).toBe(false);
   });
 });
